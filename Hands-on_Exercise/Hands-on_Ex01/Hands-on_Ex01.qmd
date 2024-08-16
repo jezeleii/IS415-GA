@@ -11,10 +11,6 @@ Geospatial Data Science is a process of importing, wrangling, integrating, and p
 
 By the end of this hands-on exercise, you should acquire the following competencies:
 
-```{r}
-
-```
-
 1.  installing and loading [sf](https://r-spatial.github.io/sf/) and [tidyverse](https://www.tidyverse.org/) packages into R environment,
 
 2.  importing geospatial data by using appropriate functions of **sf** package,
@@ -115,9 +111,7 @@ Dataset used: `CyclingPath`
 File Format: shapefile (shp) \| Data Frame Type: line feature
 
 ```{r}
-shapefile_path = "/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/CyclingPath_Jul2024"
-
-mpsz = st_read(dsn = shapefile_path, layer = "CyclingPathGazette")
+mpsz = st_read(dsn = "/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/CyclingPath_Jul2024", layer = "CyclingPathGazette")
 ```
 
 Interpretation : In the `cyclingpath` linestring feature data frame, there are 2558 features and 2 fields, and is in the **svy21** projected coordinates systems too.
@@ -186,3 +180,5 @@ The default plot of an sf object is a multi-plot of all attributes, up to a reas
 ```{r}
 plot(st_geometry(mpsz))
 ```
+
+Alternatively, we can also choose the plot the sf object by using a specific attribute as shown in the code chunk below:
