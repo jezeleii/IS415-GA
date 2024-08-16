@@ -16,21 +16,21 @@
   {
     "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html",
     "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html",
-    "title": "Hands-on Ex01",
+    "title": "Hands-on Exercise 1",
     "section": "",
     "text": "Geospatial Data Science is a process of importing, wrangling, integrating, and processing geographically referenced data sets. In this hands-on exercise, you will learn how to perform geospatial data science tasks in R by using sf package.\nBy the end of this hands-on exercise, you should acquire the following competencies:\n\ninstalling and loading sf and tidyverse packages into R environment,\nimporting geospatial data by using appropriate functions of sf package,\nimporting aspatial data by using appropriate function of readr package,\nexploring the content of simple feature data frame by using appropriate Base Rand sf functions,\nassigning or transforming coordinate systems by using using appropriate sffunctions,\nconverting an aspatial data into a sf data frame by using appropriate function of sf package,\nperforming geoprocessing tasks by using appropriate functions of sf package,\nperforming data wrangling tasks by using appropriate functions of dplyr package and\nperforming Exploratory Data Analysis (EDA) by using appropriate functions from ggplot2 package.\n\n\nNote: Students are encouraged to read the reference guide of each function, especially the input data requirements, syntaxt and argument option before using them."
   },
   {
     "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#data-acquisition",
     "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#data-acquisition",
-    "title": "Hands-on Ex01",
+    "title": "Hands-on Exercise 1",
     "section": "2.1 Data Acquisition",
     "text": "2.1 Data Acquisition\nData ais key to data analytics including geospatial analytics. In this hands-on exercise, I extracted the necessary data sets from the following sources:\n\nMaster Plan 2014 Subzone Boundary (Web) from data.gov.sg\nPre-Schools Location from data.gov.sg\nCycling Path from LTADataMall\nLatest version of Singapore Airbnb listing data from Inside Airbnb\n\n\n2.1.1 File Structure\nHands-on_Ex01"
   },
   {
     "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#installing-r-packages",
     "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#installing-r-packages",
-    "title": "Hands-on Ex01",
+    "title": "Hands-on Exercise 1",
     "section": "2.2 Installing R Packages",
     "text": "2.2 Installing R Packages\nIn this hands-on exercise, two R packages will be used. They are:\n\nsf for importing, managing, and processing geospatial data, and\ntidyverse for performing data science tasks such as importing, wrangling and visualising data.\n\nTidyverse consists of a family of R packages. In this hands-on exercise, the following packages will be used:\n\n\n\nreader\nfor importing csv data\n\n\nreadxl\nfor importing Excel worksheet,\n\n\ntidyr\nfor manipulating data,\n\n\ndplyr\nfor transforming data, and\n\n\nggplot2\nfor visualising data\n\n\n\nThe required packages were installed using the code chunk below:\n\npacman::p_load(sf,tidyverse)\n\n\nLearning Point:\n\np_load function pf pacman package is used to install and load sf and tidyverse packages into R environment."
   },
@@ -40,5 +40,47 @@
     "title": "Hands-on Ex01",
     "section": "3.1 Importing polygon feature in shapefile format",
     "text": "3.1 Importing polygon feature in shapefile format\nDataset used: MP14_SUBZONE_WEB_PL"
+  },
+  {
+    "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#importing-polygon-feature-data-in-shapefile-format",
+    "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#importing-polygon-feature-data-in-shapefile-format",
+    "title": "Hands-on Exercise 1",
+    "section": "3.1 Importing polygon feature data in shapefile format",
+    "text": "3.1 Importing polygon feature data in shapefile format\nDataset used: MP14_SUBZONE_WEB_PL\nFile Format: shapefile (shp) | Data Frame Type: polygon feature\n\nmpsz = st_read(dsn = \"/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/MP14_SUBZONE_WEB_PL\"\n               , layer = \"MP14_SUBZONE_WEB_PL\")\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/MP14_SUBZONE_WEB_PL' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n\n\nInterpretation : In the mpsz data frame, there are 323 multipolygon features and 15 fields, and is in the svy21 projected coordinates systems."
+  },
+  {
+    "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#importing-polyline-feature-data-in-shapefile-format",
+    "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#importing-polyline-feature-data-in-shapefile-format",
+    "title": "Hands-on Exercise 1",
+    "section": "3.2 Importing polyline feature data in shapefile format",
+    "text": "3.2 Importing polyline feature data in shapefile format\nDataset used: CyclingPath\nFile Format: shapefile (shp) | Data Frame Type: line feature\n\nshapefile_path = \"/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/CyclingPath_Jul2024\"\n\nmpsz = st_read(dsn = shapefile_path, layer = \"CyclingPathGazette\")\n\nReading layer `CyclingPathGazette' from data source \n  `/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/CyclingPath_Jul2024' \n  using driver `ESRI Shapefile'\nSimple feature collection with 3138 features and 2 fields\nGeometry type: MULTILINESTRING\nDimension:     XY\nBounding box:  xmin: 11854.32 ymin: 28347.98 xmax: 42644.17 ymax: 48948.15\nProjected CRS: SVY21\n\n\nInterpretation : In the cyclingpath linestring feature data frame, there are 2558 features and 2 fields, and is in the svy21 projected coordinates systems too."
+  },
+  {
+    "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#importing-gis-data-in-kml-format",
+    "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#importing-gis-data-in-kml-format",
+    "title": "Hands-on Exercise 1",
+    "section": "3.3 Importing GIS data in kml format",
+    "text": "3.3 Importing GIS data in kml format\nDataset used: PreSchool\nFile Format: kml | Data Frame Type: line feature\n\npreschool = st_read(\"/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/PreSchoolsLocation.kml\")\n\nReading layer `PRESCHOOLS_LOCATION' from data source \n  `/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/PreSchoolsLocation.kml' \n  using driver `KML'\nSimple feature collection with 2290 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6878 ymin: 1.247759 xmax: 103.9897 ymax: 1.462134\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\n\nInterpretation : In the preschool point feature data frame, there are 2290 features and 2 fields, and is in the wgs84 coordinates systems."
+  },
+  {
+    "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#working-with-st_geometry",
+    "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#working-with-st_geometry",
+    "title": "Hands-on Exercise 1",
+    "section": "4.1 Working with st_geometry()",
+    "text": "4.1 Working with st_geometry()\nThe column in the sf data.frame that contains the geometries is a list, of class sfc. We can retrieve the geometry list-column in this case by mpsz$geom or mpsz[[1]], but the more general way uses st_geometry() as shown in the code chunk below.\n\nst_geometry(mpsz)\n\nGeometry set for 3138 features \nGeometry type: MULTILINESTRING\nDimension:     XY\nBounding box:  xmin: 11854.32 ymin: 28347.98 xmax: 42644.17 ymax: 48948.15\nProjected CRS: SVY21\nFirst 5 geometries:\n\n\nMULTILINESTRING ((40128.23 37076.74, 40130.44 3...\n\n\nMULTILINESTRING ((35123.93 42970.72, 35121.12 4...\n\n\nMULTILINESTRING ((35088.86 42820.93, 35089.18 4...\n\n\nMULTILINESTRING ((35099.12 42871.11, 35097.69 4...\n\n\nMULTILINESTRING ((16031.65 36921.59, 16035.79 3...\n\n\nNote:  The print only displays basic information of the feature class such as type of geometry, the geographic extent of the features and the coordinate system of the data."
+  },
+  {
+    "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#working-with-glimpse",
+    "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#working-with-glimpse",
+    "title": "Hands-on Exercise 1",
+    "section": "4.2 Working with glimpse()",
+    "text": "4.2 Working with glimpse()\nBeside the basic feature information, we also would like to learn more about the associated attribute information in the data frame. This is the time you will find glimpse() of dplyr. very handy as shown in the code chunk below.\n\nglimpse(mpsz)\n\nRows: 3,138\nColumns: 3\n$ PLANNING_A &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…\n$ PLANNING_1 &lt;chr&gt; \"TAMPINES\", \"PUNGGOL\", \"PUNGGOL\", \"PUNGGOL\", \"JURONG WEST\",…\n$ geometry   &lt;MULTILINESTRING [m]&gt; MULTILINESTRING ((40128.23 ..., MULTILINEST…\n\n\nInterpretation: glimpse() report reveals the data type of each fields. For example FMEL-UPD_D field is in date data type and X_ADDR, Y_ADDR, SHAPE_L and SHAPE_AREA fields are all in double-precision values."
+  },
+  {
+    "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#working-with-head",
+    "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#working-with-head",
+    "title": "Hands-on Exercise 1",
+    "section": "4.2 Working with head()",
+    "text": "4.2 Working with head()\nTo reveal complete information of a feature object, use the head()  function of Base R\n\nhead(mpsz, n=5)  \n\nSimple feature collection with 5 features and 2 fields\nGeometry type: MULTILINESTRING\nDimension:     XY\nBounding box:  xmin: 16031.65 ymin: 36921.59 xmax: 40146.92 ymax: 42970.72\nProjected CRS: SVY21\n  PLANNING_A  PLANNING_1                       geometry\n1       &lt;NA&gt;    TAMPINES MULTILINESTRING ((40128.23 ...\n2       &lt;NA&gt;     PUNGGOL MULTILINESTRING ((35123.93 ...\n3       &lt;NA&gt;     PUNGGOL MULTILINESTRING ((35088.86 ...\n4       &lt;NA&gt;     PUNGGOL MULTILINESTRING ((35099.12 ...\n5       &lt;NA&gt; JURONG WEST MULTILINESTRING ((16031.65 ...\n\n\n\nNote: One of the useful argument of head() is it allows user to select the numbers of record to display (i.e. the n argument)."
   }
 ]

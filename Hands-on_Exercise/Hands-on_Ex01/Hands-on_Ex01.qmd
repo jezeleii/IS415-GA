@@ -1,5 +1,5 @@
 ---
-title: "Hands-on Ex01"
+title: "Hands-on Exercise 1"
 author: "Jezelei Manangan"
 ---
 
@@ -10,6 +10,10 @@ author: "Jezelei Manangan"
 Geospatial Data Science is a process of importing, wrangling, integrating, and processing geographically referenced data sets. In this hands-on exercise, you will learn how to perform geospatial data science tasks in R by using **sf** package.
 
 By the end of this hands-on exercise, you should acquire the following competencies:
+
+```{r}
+
+```
 
 1.  installing and loading [sf](https://r-spatial.github.io/sf/) and [tidyverse](https://www.tidyverse.org/) packages into R environment,
 
@@ -91,6 +95,94 @@ In this section, I have imported the following geospatial data into R by using 
 | `CyclingPath`         | a line feature layer in ESRI shapefile format, and |
 | `PreSchool`           | a point feature layer in kml file format           |
 
-## **3.1 Importing polygon feature in shapefile format** 
+## **3.1 Importing polygon feature data in shapefile format** 
 
 Dataset used: `MP14_SUBZONE_WEB_PL`
+
+File Format: shapefile (shp) \| Data Frame Type: polygon feature
+
+```{r}
+mpsz = st_read(dsn = "/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/MP14_SUBZONE_WEB_PL"
+               , layer = "MP14_SUBZONE_WEB_PL")
+```
+
+Interpretation : In the `mpsz` data frame, there are 323 multipolygon features and 15 fields, and is in the **svy21** projected coordinates systems.
+
+## **3.2 Importing polyline feature data in shapefile format** 
+
+Dataset used: `CyclingPath`
+
+File Format: shapefile (shp) \| Data Frame Type: line feature
+
+```{r}
+shapefile_path = "/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/CyclingPath_Jul2024"
+
+mpsz = st_read(dsn = shapefile_path, layer = "CyclingPathGazette")
+```
+
+Interpretation : In the `cyclingpath` linestring feature data frame, there are 2558 features and 2 fields, and is in the **svy21** projected coordinates systems too.
+
+## **3.3 Importing GIS data in kml format**
+
+Dataset used: `PreSchool`
+
+File Format: kml \| Data Frame Type: line feature
+
+```{r}
+preschool = st_read("/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/PreSchoolsLocation.kml")
+
+```
+
+Interpretation : In the `preschool` point feature data frame, there are 2290 features and 2 fields, and is in the wgs84 coordinates systems.
+
+# **4.0 Checking the Content of A Simple Feature Data Frame** 
+
+------------------------------------------------------------------------
+
+In this section, different ways of information retrieval related to the content of a simple feature data frame is explored.
+
+## **4.1 Working with st_geometry()**
+
+The column in the sf data.frame that contains the geometries is a list, of class `sfc`. We can retrieve the geometry list-column in this case by mpsz\$geom or mpsz\[\[1\]\], but the more general way uses *st_geometry()* as shown in the code chunk below.
+
+```{r}
+st_geometry(mpsz)
+```
+
+Note:  The print only displays basic information of the feature class such as type of geometry, the geographic extent of the features and the coordinate system of the data.
+
+## **4.2 Working with glimpse()**
+
+Beside the basic feature information, we also would like to learn more about the associated attribute information in the data frame. This is the time you will find *glimpse()* of **dplyr**. very handy as shown in the code chunk below.
+
+```{r}
+glimpse(mpsz)
+```
+
+Interpretation: *glimpse()* report reveals the data type of each fields. For example `FMEL-UPD_D` field is in **date** data type and `X_ADDR`, `Y_ADDR`, `SHAPE_L` and `SHAPE_AREA` fields are all in **double-precision values**.
+
+## **4.2 Working with head()**
+
+To reveal complete information of a feature object, use the [*head()*](#0)  function of Base R
+
+```{r}
+head(mpsz, n=5)  
+```
+
+> Note: One of the useful argument of *head()* is it allows user to select the numbers of record to display (i.e. the n argument).
+
+# **5.0 Plotting the Geospatial Data**
+
+------------------------------------------------------------------------
+
+In geospatial data science, by looking at the feature information is not enough. We are also interested to visualise the geospatial features. This is the time you will find *plot()* of R Graphic comes in very handy as shown in the code chunk below.
+
+```{r}
+plot(mpsz)
+```
+
+The default plot of an sf object is a multi-plot of all attributes, up to a reasonable maximum as shown above. We can, however, choose to plot only the geometry by using the code chunk below.
+
+```{r}
+plot(st_geometry(mpsz))
+```

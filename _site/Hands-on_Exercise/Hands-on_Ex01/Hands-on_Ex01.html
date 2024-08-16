@@ -8,7 +8,7 @@
 
 <meta name="author" content="Jezelei Manangan">
 
-<title>IS415-GA - Hands-on Ex01</title>
+<title>IS415-GA - Hands-on Exercise 1</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -171,8 +171,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data"><strong>3.0&nbsp;Importing Geospatial Data</strong></a>
   <ul class="collapse">
-  <li><a href="#importing-polygon-feature-in-shapefile-format" id="toc-importing-polygon-feature-in-shapefile-format" class="nav-link" data-scroll-target="#importing-polygon-feature-in-shapefile-format"><strong>3.1&nbsp;Importing polygon feature in shapefile format</strong></a></li>
+  <li><a href="#importing-polygon-feature-data-in-shapefile-format" id="toc-importing-polygon-feature-data-in-shapefile-format" class="nav-link" data-scroll-target="#importing-polygon-feature-data-in-shapefile-format"><strong>3.1&nbsp;Importing polygon feature data in shapefile format</strong></a></li>
+  <li><a href="#importing-polyline-feature-data-in-shapefile-format" id="toc-importing-polyline-feature-data-in-shapefile-format" class="nav-link" data-scroll-target="#importing-polyline-feature-data-in-shapefile-format"><strong>3.2&nbsp;Importing polyline feature data in shapefile format</strong></a></li>
+  <li><a href="#importing-gis-data-in-kml-format" id="toc-importing-gis-data-in-kml-format" class="nav-link" data-scroll-target="#importing-gis-data-in-kml-format"><strong>3.3&nbsp;Importing GIS data in kml format</strong></a></li>
   </ul></li>
+  <li><a href="#checking-the-content-of-a-simple-feature-data-frame" id="toc-checking-the-content-of-a-simple-feature-data-frame" class="nav-link" data-scroll-target="#checking-the-content-of-a-simple-feature-data-frame"><strong>4.0&nbsp;Checking the Content of A Simple Feature Data Frame</strong></a>
+  <ul class="collapse">
+  <li><a href="#working-with-st_geometry" id="toc-working-with-st_geometry" class="nav-link" data-scroll-target="#working-with-st_geometry"><strong>4.1&nbsp;Working with st_geometry()</strong></a></li>
+  <li><a href="#working-with-glimpse" id="toc-working-with-glimpse" class="nav-link" data-scroll-target="#working-with-glimpse"><strong>4.2&nbsp;Working with glimpse()</strong></a></li>
+  <li><a href="#working-with-head" id="toc-working-with-head" class="nav-link" data-scroll-target="#working-with-head"><strong>4.2&nbsp;Working with head()</strong></a></li>
+  </ul></li>
+  <li><a href="#plotting-the-geospatial-data" id="toc-plotting-the-geospatial-data" class="nav-link" data-scroll-target="#plotting-the-geospatial-data"><strong>5.0 Plotting the Geospatial Data</strong></a></li>
   </ul>
 </nav>
     </div>
@@ -181,7 +190,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Hands-on Ex01</h1>
+<h1 class="title">Hands-on Exercise 1</h1>
 </div>
 
 
@@ -309,12 +318,169 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<section id="importing-polygon-feature-in-shapefile-format" class="level2">
-<h2 class="anchored" data-anchor-id="importing-polygon-feature-in-shapefile-format"><strong>3.1&nbsp;Importing polygon feature in shapefile format</strong></h2>
+<section id="importing-polygon-feature-data-in-shapefile-format" class="level2">
+<h2 class="anchored" data-anchor-id="importing-polygon-feature-data-in-shapefile-format"><strong>3.1&nbsp;Importing polygon feature data in shapefile format</strong></h2>
 <p>Dataset used: <code>MP14_SUBZONE_WEB_PL</code></p>
-
-
+<p>File Format: shapefile (shp) | Data Frame Type: polygon feature</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">=</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/MP14_SUBZONE_WEB_PL"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>               , <span class="at">layer =</span> <span class="st">"MP14_SUBZONE_WEB_PL"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `MP14_SUBZONE_WEB_PL' from data source 
+  `/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/MP14_SUBZONE_WEB_PL' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 323 features and 15 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33
+Projected CRS: SVY21</code></pre>
+</div>
+</div>
+<p>Interpretation : In the <code>mpsz</code> data frame, there are 323 multipolygon features and 15 fields, and is in the <strong>svy21</strong>&nbsp;projected coordinates systems.</p>
 </section>
+<section id="importing-polyline-feature-data-in-shapefile-format" class="level2">
+<h2 class="anchored" data-anchor-id="importing-polyline-feature-data-in-shapefile-format"><strong>3.2&nbsp;Importing polyline feature data in shapefile format</strong></h2>
+<p>Dataset used: <code>CyclingPath</code></p>
+<p>File Format: shapefile (shp) | Data Frame Type: line feature</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>shapefile_path <span class="ot">=</span> <span class="st">"/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/CyclingPath_Jul2024"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>mpsz <span class="ot">=</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> shapefile_path, <span class="at">layer =</span> <span class="st">"CyclingPathGazette"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `CyclingPathGazette' from data source 
+  `/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/CyclingPath_Jul2024' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 3138 features and 2 fields
+Geometry type: MULTILINESTRING
+Dimension:     XY
+Bounding box:  xmin: 11854.32 ymin: 28347.98 xmax: 42644.17 ymax: 48948.15
+Projected CRS: SVY21</code></pre>
+</div>
+</div>
+<p>Interpretation : In the <code>cyclingpath</code> linestring feature data frame, there are 2558 features and 2 fields, and is in the <strong>svy21</strong>&nbsp;projected coordinates systems too.</p>
+</section>
+<section id="importing-gis-data-in-kml-format" class="level2">
+<h2 class="anchored" data-anchor-id="importing-gis-data-in-kml-format"><strong>3.3&nbsp;Importing GIS data in kml format</strong></h2>
+<p>Dataset used: <code>PreSchool</code></p>
+<p>File Format: kml | Data Frame Type: line feature</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>preschool <span class="ot">=</span> <span class="fu">st_read</span>(<span class="st">"/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/PreSchoolsLocation.kml"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `PRESCHOOLS_LOCATION' from data source 
+  `/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on_Ex01/data/geospatial/PreSchoolsLocation.kml' 
+  using driver `KML'
+Simple feature collection with 2290 features and 2 fields
+Geometry type: POINT
+Dimension:     XYZ
+Bounding box:  xmin: 103.6878 ymin: 1.247759 xmax: 103.9897 ymax: 1.462134
+z_range:       zmin: 0 zmax: 0
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+</div>
+<p>Interpretation : In the <code>preschool</code> point feature data frame, there are 2290 features and 2 fields, and is in the wgs84 coordinates systems.</p>
+</section>
+</section>
+<section id="checking-the-content-of-a-simple-feature-data-frame" class="level1">
+<h1><strong>4.0&nbsp;Checking the Content of A Simple Feature Data Frame</strong></h1>
+<hr>
+<p>In this section, different ways of information retrieval related to the content of a simple feature data frame is explored.</p>
+<section id="working-with-st_geometry" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-st_geometry"><strong>4.1&nbsp;Working with st_geometry()</strong></h2>
+<p>The column in the sf data.frame that contains the geometries is a list, of class&nbsp;<code>sfc</code>. We can retrieve the geometry list-column in this case by mpsz$geom or mpsz[[1]], but the more general way uses&nbsp;<em>st_geometry()</em>&nbsp;as shown in the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">st_geometry</span>(mpsz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Geometry set for 3138 features 
+Geometry type: MULTILINESTRING
+Dimension:     XY
+Bounding box:  xmin: 11854.32 ymin: 28347.98 xmax: 42644.17 ymax: 48948.15
+Projected CRS: SVY21
+First 5 geometries:</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>MULTILINESTRING ((40128.23 37076.74, 40130.44 3...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>MULTILINESTRING ((35123.93 42970.72, 35121.12 4...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>MULTILINESTRING ((35088.86 42820.93, 35089.18 4...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>MULTILINESTRING ((35099.12 42871.11, 35097.69 4...</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>MULTILINESTRING ((16031.65 36921.59, 16035.79 3...</code></pre>
+</div>
+</div>
+<p>Note: &nbsp;The print only displays basic information of the feature class such as type of geometry, the geographic extent of the features and the coordinate system of the data.</p>
+</section>
+<section id="working-with-glimpse" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-glimpse"><strong>4.2&nbsp;Working with glimpse()</strong></h2>
+<p>Beside the basic feature information, we also would like to learn more about the associated attribute information in the data frame. This is the time you will find&nbsp;<em>glimpse()</em>&nbsp;of&nbsp;<strong>dplyr</strong>. very handy as shown in the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(mpsz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 3,138
+Columns: 3
+$ PLANNING_A &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…
+$ PLANNING_1 &lt;chr&gt; "TAMPINES", "PUNGGOL", "PUNGGOL", "PUNGGOL", "JURONG WEST",…
+$ geometry   &lt;MULTILINESTRING [m]&gt; MULTILINESTRING ((40128.23 ..., MULTILINEST…</code></pre>
+</div>
+</div>
+<p>Interpretation: <em>glimpse()</em>&nbsp;report reveals the data type of each fields. For example&nbsp;<code>FMEL-UPD_D</code>&nbsp;field is in&nbsp;<strong>date</strong>&nbsp;data type and&nbsp;<code>X_ADDR</code>,&nbsp;<code>Y_ADDR</code>,&nbsp;<code>SHAPE_L</code>&nbsp;and&nbsp;<code>SHAPE_AREA</code>&nbsp;fields are all in&nbsp;<strong>double-precision values</strong>.</p>
+</section>
+<section id="working-with-head" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-head"><strong>4.2&nbsp;Working with head()</strong></h2>
+<p>To reveal complete information of a feature object, use the&nbsp;<a href="#0"><em>head()</em></a>&nbsp; function of Base R</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(mpsz, <span class="at">n=</span><span class="dv">5</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 5 features and 2 fields
+Geometry type: MULTILINESTRING
+Dimension:     XY
+Bounding box:  xmin: 16031.65 ymin: 36921.59 xmax: 40146.92 ymax: 42970.72
+Projected CRS: SVY21
+  PLANNING_A  PLANNING_1                       geometry
+1       &lt;NA&gt;    TAMPINES MULTILINESTRING ((40128.23 ...
+2       &lt;NA&gt;     PUNGGOL MULTILINESTRING ((35123.93 ...
+3       &lt;NA&gt;     PUNGGOL MULTILINESTRING ((35088.86 ...
+4       &lt;NA&gt;     PUNGGOL MULTILINESTRING ((35099.12 ...
+5       &lt;NA&gt; JURONG WEST MULTILINESTRING ((16031.65 ...</code></pre>
+</div>
+</div>
+<blockquote class="blockquote">
+<p>Note: One of the useful argument of&nbsp;<em>head()</em>&nbsp;is it allows user to select the numbers of record to display (i.e.&nbsp;the n argument).</p>
+</blockquote>
+</section>
+</section>
+<section id="plotting-the-geospatial-data" class="level1">
+<h1><strong>5.0 Plotting the Geospatial Data</strong></h1>
+<hr>
+<p>In geospatial data science, by looking at the feature information is not enough. We are also interested to visualise the geospatial features. This is the time you will find&nbsp;<em>plot()</em>&nbsp;of R Graphic comes in very handy as shown in the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mpsz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex01_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The default plot of an sf object is a multi-plot of all attributes, up to a reasonable maximum as shown above. We can, however, choose to plot only the geometry by using the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">st_geometry</span>(mpsz))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Hands-on_Ex01_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
 </section>
 
 </main> <!-- /main -->
