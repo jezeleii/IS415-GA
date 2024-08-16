@@ -105,17 +105,17 @@
     "text": "8.1 Buffering\nThe scenario:\nThe authority is planning to upgrade the exiting cycling path. To do so, they need to acquire 5 metres of reserved land on the both sides of the current cycling path. You are tasked to determine the extend of the land need to be acquired and their total area.\nThe solution:\nFirstly, st_buffer() of sf package is used to compute the 5-meter buffers around cycling paths\n\nbuffer_cycling &lt;- st_buffer(cyclingpath, \n                               dist=5, nQuadSegs = 30)\n\nThis is followed by calculating the area of the buffers as shown in the code chunk below.\n\nbuffer_cycling$AREA &lt;- st_area(buffer_cycling)\n\nLastly, sum() of Base R will be used to derive the total land involved\n\nsum(buffer_cycling$AREA)\n\n2218855 [m^2]\n\n\n\nAnswer differs from ‘1774367 [m^2]’ due to updated data (CyclingPath_Jul2024)"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "IS415-GA",
-    "section": "",
-    "text": "Welcome to IS215 Geospatial Analytics Homepage. In this website, you will find my coursework prepared for this course."
-  },
-  {
     "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#point-in-polygon-count",
     "href": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html#point-in-polygon-count",
     "title": "Hands-on Exercise 1",
     "section": "8.2 Point-in-polygon count",
     "text": "8.2 Point-in-polygon count\nThe scenario:\nA pre-school service group want to find out the numbers of pre-schools in each Planning Subzone.\nThe solution:\nThe code chunk below performs two operations at one go. Firstly, identify pre-schools located inside each Planning Subzone by using st_intersects(). Next, length() of Base R is used to calculate numbers of pre-schools that fall inside each planning subzone.\n\nmpsz3414$`PreSch Count`&lt;- lengths(st_intersects(mpsz3414, preschool3414))\n\n\nWarning: You should not confuse with st_intersection().\n\nYou can check the summary statistics of the newly derived PreSch Count field by using summary() as shown in the code chunk below.\n\nsummary(mpsz3414$`PreSch Count`)\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n   0.00    0.00    4.00    7.09   10.00   72.00 \n\n\nTo list the planning subzone with the most number of pre-school, the top_n() of dplyrpackage is used as shown in the code chunk below.\n\ntop_n(mpsz3414, 1, `PreSch Count`)\n\nSimple feature collection with 1 feature and 16 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 39655.33 ymin: 35966 xmax: 42940.57 ymax: 38622.37\nProjected CRS: SVY21 / Singapore TM\n  OBJECTID SUBZONE_NO     SUBZONE_N SUBZONE_C CA_IND PLN_AREA_N PLN_AREA_C\n1      189          2 TAMPINES EAST    TMSZ02      N   TAMPINES         TM\n     REGION_N REGION_C          INC_CRC FMEL_UPD_D   X_ADDR   Y_ADDR SHAPE_Leng\n1 EAST REGION       ER 21658EAAF84F4D8D 2014-12-05 41122.55 37392.39   10180.62\n  SHAPE_Area                       geometry PreSch Count\n1    4339824 MULTIPOLYGON (((42196.76 38...           72\n\n\nTo calculate the density of pre-school by planning subzone:\nThe code chunk below uses st_area() of sf package to derive the area of each planning subzone.\n\nmpsz3414$Area &lt;- mpsz3414 %&gt;%\n  st_area()\n\nNext, mutate() of dplyr package is used to compute the density by using the code chunk below.\n\nmpsz3414 &lt;- mpsz3414 %&gt;%\n  mutate(`PreSch Density` = `PreSch Count`/Area * 1000000)"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "IS415-GA",
+    "section": "",
+    "text": "Welcome to IS215 Geospatial Analytics Homepage. In this website, you will find my coursework prepared for this course."
   }
 ]
