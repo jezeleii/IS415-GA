@@ -2,6 +2,32 @@
 title: "IS415-GA"
 ---
 
+# about
+
 Welcome to **IS215 Geospatial Analytics Homepage**. In this website, you will find my coursework prepared for this course.
 
-{{< include "Hands-on-Exercise/Hands-on_Ex01/Hands-on_Ex01.qmd" >}}
+<hr/>
+
+<div style="display:flex; align-items:center;">
+
+<div>
+
+<h3>Hands-On Exercise 01</h3>
+
+<p>Building Block 1: Geospatial Data Science with R</p>
+
+</div>
+
+<div>
+
+<a href="">
+
+{{< embed Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.qmd#mpsz-multi-map >}}
+
+</a>
+
+</div>
+
+</div>
+
+<hr/>

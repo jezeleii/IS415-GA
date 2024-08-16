@@ -31,7 +31,7 @@ By the end of this hands-on exercise, you should acquire the following competenc
 
 > Note: Students are encouraged to read the reference guide of each function, especially the input data requirements, syntax and argument option before using them.
 
-# **2.0 Set-up** 
+# **2.0 Set-up**
 
 ------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ Data is key to data analytics including geospatial analytics. In this hands-on e
 
 -   Latest version of Singapore Airbnb listing data from [Inside Airbnb](http://insideairbnb.com/get-the-data.html)
 
-### **2.1.1 File Structure** 
+### **2.1.1 File Structure**
 
 ```         
 Hands-on_Exercise
@@ -62,7 +62,7 @@ Hands-on_Exercise
 |   |   |   |-- PreSchoolsLocation.kml
 ```
 
-## **2.2 Installing R Packages** 
+## **2.2 Installing R Packages**
 
 In this hands-on exercise, two R packages will be used. They are:
 
@@ -90,19 +90,19 @@ pacman::p_load(sf,tidyverse)
 >
 > -   [*`p_load`*](https://cran.r-project.org/web/packages/pacman/pacman.pdf) *function pf [**pacman**](https://github.com/trinker/pacman) package is used to install and load sf and tidyverse packages into R environment.*
 
-# **3.0 Importing Geospatial Data** 
+# **3.0 Importing Geospatial Data**
 
 ------------------------------------------------------------------------
 
 In this section, I have imported the following geospatial data into R by using [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package:
 
 |                       |                                                    |
-|-------------------------|-----------------------------------------------|
+|-------------------------|----------------------------------------------|
 | `MP14_SUBZONE_WEB_PL` | a polygon feature layer in ESRI shapefile format,  |
 | `CyclingPath`         | a line feature layer in ESRI shapefile format, and |
 | `PreSchool`           | a point feature layer in kml file format           |
 
-## **3.1 Importing polygon feature data in shapefile format** 
+## **3.1 Importing polygon feature data in shapefile format**
 
 Dataset used: `MP14_SUBZONE_WEB_PL`
 
@@ -115,7 +115,7 @@ mpsz = st_read(dsn = "/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-o
 
 Interpretation : In the `mpsz` data frame, there are 323 multipolygon features and 15 fields, and is in the **svy21** projected coordinates systems.
 
-## **3.2 Importing polyline feature data in shapefile format** 
+## **3.2 Importing polyline feature data in shapefile format**
 
 Dataset used: `CyclingPath`
 
@@ -140,7 +140,7 @@ preschool = st_read("/Users/jezelei/jezeleii/IS415-GA/Hands-on_Exercise/Hands-on
 
 Interpretation : In the `preschool` point feature data frame, there are 2290 features and 2 fields, and is in the wgs84 coordinates systems.
 
-# **4.0 Checking the Content of A Simple Feature Data Frame** 
+# **4.0 Checking the Content of A Simple Feature Data Frame**
 
 ------------------------------------------------------------------------
 
@@ -183,8 +183,9 @@ head(mpsz, n=5)
 In geospatial data science, by looking at the feature information is not enough. We are also interested to visualise the geospatial features. This is the time you will find *plot()* of R Graphic comes in very handy as shown in the code chunk below.
 
 ```{r}
-#plot(mpsz)
-plot(mpsz, max.plot = 15)
+# | label: mpsz-multi-map
+plot(mpsz)
+#plot(mpsz, max.plot = 15)
 ```
 
 The default plot of an sf object is a multi-plot of all attributes, up to a reasonable maximum as shown above. We can, however, choose to plot only the geometry by using the code chunk below.
@@ -199,7 +200,7 @@ Alternatively, we can also choose the plot the sf object by using a specific att
 plot(mpsz["PLN_AREA_N"])
 ```
 
-# **6.0 Working with Projection** 
+# **6.0 Working with Projection**
 
 ------------------------------------------------------------------------
 
@@ -207,7 +208,7 @@ Map projection is an important property of a geospatial data. In order to perfor
 
 In this section, you will learn how to project a simple feature data frame from one coordinate system to another coordinate system. The technical term of this process is called **projection transformation**.
 
-## **6.1 Assigning EPSG code to a simple feature data frame** 
+## **6.1 Assigning EPSG code to a simple feature data frame**
 
 One of the common issue that can happen during importing geospatial data into R is that the coordinate system of the source data was either missing (such as due to missing .proj for ESRI shapefile) or wrongly assigned during the importing process.
 
@@ -316,7 +317,7 @@ listings_sf <- st_as_sf(listings,
 Learning Points from the arguments above:
 
 |                   |                                                                                                                                                                                                                                                                                                                          |
-|----------------|--------------------------------------------------------|
+|------------------|------------------------------------------------------|
 | *coords* argument | requires you to provide the column name of the x-coordinates first then followed by the column name of the y-coordinates.                                                                                                                                                                                                |
 | *crs* argument    | requires you to provide the coordinates system in epsg format. [EPSG: 4326](https://epsg.io/4326) is wgs84 Geographic Coordinate System and [EPSG: 3414](https://epsg.io/3414) is Singapore SVY21 Projected Coordinate System. You can search for other country’s epsg code by referring to [epsg.io](https://epsg.io/). |
 | *%\>%* (pipe)     | is used to nest *st_transform()* to transform the newly created simple feature data frame into svy21 projected coordinates system.                                                                                                                                                                                       |
@@ -337,7 +338,7 @@ Besides providing functions to handling (i.e. importing, exporting, assigning p
 
 In this section, I will perform two commonly used geoprocessing functions, namely [buffering](https://www.gislounge.com/buffers-in-gis/) and point in polygon count.
 
-## 8.1 Buffering 
+## 8.1 Buffering
 
 The scenario:
 
@@ -366,7 +367,7 @@ sum(buffer_cycling$AREA)
 
 > Answer differs from '1774367 \[m\^2\]' due to updated data (CyclingPath_Jul2024)
 
-## 8.2 Point-in-polygon count 
+## 8.2 Point-in-polygon count
 
 The scenario:
 
@@ -410,7 +411,7 @@ mpsz3414 <- mpsz3414 %>%
   mutate(`PreSch Density` = `PreSch Count`/Area * 1000000)
 ```
 
-# 9.0 Exploratory Data Analysis (EDA) 
+# 9.0 Exploratory Data Analysis (EDA)
 
 In practice, many geospatial analytics start with Exploratory Data Analysis. In this section, you will learn how to use appropriate [ggplot2](https://ggplot2.tidyverse.org/) functions to create functional and yet truthful statistical graphs for EDA purposes.
 
@@ -450,8 +451,7 @@ ggplot(data=mpsz3414,
       y = "Pre-school count")
 ```
 
-# 10.0 Questions to address: 
+# 10.0 Questions to address:
 
 1.  Map-Projection - What are the differences in coordinate systems — wgs84 vs svy21?
 2.  Listings (Aspatial Data) - How to depict tibble data using selected columns / arranging them by certain columns / hiding the listing_url etc, so that readers have an overview of the more important data first? 
-

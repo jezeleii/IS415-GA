@@ -1,7 +1,5 @@
 project:
   type: website
-  render: 
-    - "Hands-on-Exercise/Hands-on_Ex01/Hands-on_Ex01.qmd"  
 
 website: 
   title: "IS415-GA"
