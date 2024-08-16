@@ -1,0 +1,96 @@
+---
+title: "Hands-on Ex01"
+author: "Jezelei Manangan"
+---
+
+# **1.0 Exercise Objectives**
+
+------------------------------------------------------------------------
+
+Geospatial Data Science is a process of importing, wrangling, integrating, and processing geographically referenced data sets. In this hands-on exercise, you will learn how to perform geospatial data science tasks in R by using **sf** package.
+
+By the end of this hands-on exercise, you should acquire the following competencies:
+
+1.  installing and loading [sf](https://r-spatial.github.io/sf/) and [tidyverse](https://www.tidyverse.org/) packages into R environment,
+
+2.  importing geospatial data by using appropriate functions of **sf** package,
+
+3.  importing aspatial data by using appropriate function of **readr** package,
+
+4.  exploring the content of simple feature data frame by using appropriate **Base R**and **sf** functions,
+
+5.  assigning or transforming coordinate systems by using using appropriate *sf*functions,
+
+6.  converting an aspatial data into a sf data frame by using appropriate function of **sf** package,
+
+7.  performing geoprocessing tasks by using appropriate functions of **sf** package,
+
+8.  performing data wrangling tasks by using appropriate functions of **dplyr** package and
+
+9.  performing Exploratory Data Analysis (EDA) by using appropriate functions from **ggplot2** package.
+
+> Note: Students are encouraged to read the reference guide of each function, especially the input data requirements, syntaxt and argument option before using them.
+
+# **2.0 Set-up** 
+
+------------------------------------------------------------------------
+
+## **2.1 Data Acquisition**
+
+Data ais key to data analytics including geospatial analytics. In this hands-on exercise, I extracted the necessary data sets from the following sources:
+
+-   Master Plan 2014 Subzone Boundary (Web) from [data.gov.sg](https://data.gov.sg/)
+
+-   Pre-Schools Location from [data.gov.sg](https://data.gov.sg/)
+
+-   Cycling Path from [LTADataMall](https://www.mytransport.sg/content/mytransport/home/dataMall.html)
+
+-   Latest version of Singapore Airbnb listing data from [Inside Airbnb](http://insideairbnb.com/get-the-data.html)
+
+### **2.1.1 File Structure** 
+
+`Hands-on_Ex01`
+
+## **2.2 Installing R Packages** 
+
+In this hands-on exercise, two R packages will be used. They are:
+
+-   **sf** for importing, managing, and processing geospatial data, and
+
+-   **tidyverse** for performing data science tasks such as importing, wrangling and visualising data.
+
+Tidyverse consists of a family of R packages. In this hands-on exercise, the following packages will be used:
+
+|             |                                |
+|-------------|--------------------------------|
+| reader      | for importing csv data         |
+| **readxl**  | for importing Excel worksheet, |
+| **tidyr**   | for manipulating data,         |
+| **dplyr**   | for transforming data, and     |
+| **ggplot2** | for visualising data           |
+
+The required packages were installed using the code chunk below:
+
+```{r}
+pacman::p_load(sf,tidyverse)
+```
+
+> *Learning Point:*
+>
+> -   [*`p_load`*](https://cran.r-project.org/web/packages/pacman/pacman.pdf) *function pf [**pacman**](https://github.com/trinker/pacman) package is used to install and load sf and tidyverse packages into R environment.*
+
+# **3.0 Importing Geospatial Data** 
+
+------------------------------------------------------------------------
+
+In this section, I have imported the following geospatial data into R by using [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package:
+
+|                       |                                                    |
+|-------------------------|-----------------------------------------------|
+| `MP14_SUBZONE_WEB_PL` | a polygon feature layer in ESRI shapefile format,  |
+| `CyclingPath`         | a line feature layer in ESRI shapefile format, and |
+| `PreSchool`           | a point feature layer in kml file format           |
+
+## **3.1 Importing polygon feature in shapefile format** 
+
+Dataset used: `MP14_SUBZONE_WEB_PL`
