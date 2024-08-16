@@ -449,3 +449,9 @@ ggplot(data=mpsz3414,
       x = "Pre-school density (per km sq)",
       y = "Pre-school count")
 ```
+
+# 10.0 Questions to address: 
+
+1.  Map-Projection - What are the differences in coordinate systems — wgs84 vs svy21?
+2.  Listings (Aspatial Data) - How to depict tibble data using selected columns / arranging them by certain columns / hiding the listing_url etc, so that readers have an overview of the more important data first? 
+
