@@ -1,5 +1,7 @@
 project:
   type: website
+  render: 
+    - "Hands-on-Exercise/Hands-on_Ex01/Hands-on_Ex01.qmd"  
 
 website: 
   title: "IS415-GA"
@@ -8,7 +10,7 @@ website:
       - text: "Hands-on Exercise"
         menu: 
           - text: "Hands-on Exercise 1"
-            href: "Hands-on-Exercise/Hands-on_Ex01/Hands-on_Ex01.html"
+            href: "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html"
     right: 
       - href: index.qmd
         text: Home

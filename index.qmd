@@ -3,3 +3,5 @@ title: "IS415-GA"
 ---
 
 Welcome to **IS215 Geospatial Analytics Homepage**. In this website, you will find my coursework prepared for this course.
+
+{{< include "Hands-on-Exercise/Hands-on_Ex01/Hands-on_Ex01.qmd" >}}
