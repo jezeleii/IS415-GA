@@ -2,17 +2,16 @@
 title: "IS415-GA"
 ---
 
-# about
+# About
 
-Welcome to **IS215 Geospatial Analytics Homepage**. In this website, you will find my coursework prepared for this course.
+Welcome to **IS215 Geospatial Analytics Homepage**. I'm Jezelei, a Y3 student majoring in IS, specializing in BA & SMT. In this website, you will find my coursework prepared for this course.
 
 <hr/>
 
-<div style="display:flex; align-items:center;">
-
+::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On Exercise 01</h3>
+<h3 style="width:100;" >Hands-On Exercise 01</h3>
 
 <p>Building Block 1: Geospatial Data Science with R</p>
 
@@ -20,14 +19,13 @@ Welcome to **IS215 Geospatial Analytics Homepage**. In this website, you will fi
 
 <div>
 
-<a href="">
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex01/hands-on_ex01`">`{=html}
 
-{{< embed Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.qmd#mpsz-multi-map >}}
+<img src="headerImages/Hands-on_Ex01_Header.png" alt="Hands-on Exercise 1" style="max-width:95%; height:auto; display: block; margin-left:0;"/>
 
 </a>
 
 </div>
-
-</div>
+:::
 
 <hr/>
