@@ -1,10 +1,38 @@
 [
   {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "IS415-GA",
+    "section": "",
+    "text": "About\nWelcome to IS215 Geospatial Analytics Homepage. I’m Jezelei, a Y3 student majoring in IS, specializing in BA & SMT. In this website, you will find my coursework and geospatial analysis projects.\n\n\n\n\nHands-On Exercise 01\n\n\nBuilding Block 1: Geospatial Data Science with R"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx01/InClassEx01.html",
+    "href": "In-Class_Exercise/InClassEx01/InClassEx01.html",
+    "title": "In-Class Exercise 01: Geospatial Data Science",
+    "section": "",
+    "text": "test"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx01/data/MPSZ-2019.html",
+    "href": "In-Class_Exercise/InClassEx01/data/MPSZ-2019.html",
+    "title": "IS415-GA",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+  },
+  {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
     "section": "",
     "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "Hands-on_Exercise/Hands-on_Ex02/Hands-on_Ex02.html",
+    "href": "Hands-on_Exercise/Hands-on_Ex02/Hands-on_Ex02.html",
+    "title": "Hands-on_Ex02",
+    "section": "",
+    "text": "test"
   },
   {
     "objectID": "Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html",
@@ -112,22 +140,8 @@
     "text": "8.2 Point-in-polygon count\nThe scenario:\nA pre-school service group want to find out the numbers of pre-schools in each Planning Subzone.\nThe solution:\nThe code chunk below performs two operations at one go. Firstly, identify pre-schools located inside each Planning Subzone by using st_intersects(). Next, length() of Base R is used to calculate numbers of pre-schools that fall inside each planning subzone.\n\nmpsz3414$`PreSch Count`&lt;- lengths(st_intersects(mpsz3414, preschool3414))\n\n\nWarning: You should not confuse with st_intersection().\n\nYou can check the summary statistics of the newly derived PreSch Count field by using summary() as shown in the code chunk below.\n\nsummary(mpsz3414$`PreSch Count`)\n\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n   0.00    0.00    4.00    7.09   10.00   72.00 \n\n\nTo list the planning subzone with the most number of pre-school, the top_n() of dplyrpackage is used as shown in the code chunk below.\n\ntop_n(mpsz3414, 1, `PreSch Count`)\n\nSimple feature collection with 1 feature and 16 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 39655.33 ymin: 35966 xmax: 42940.57 ymax: 38622.37\nProjected CRS: SVY21 / Singapore TM\n  OBJECTID SUBZONE_NO     SUBZONE_N SUBZONE_C CA_IND PLN_AREA_N PLN_AREA_C\n1      189          2 TAMPINES EAST    TMSZ02      N   TAMPINES         TM\n     REGION_N REGION_C          INC_CRC FMEL_UPD_D   X_ADDR   Y_ADDR SHAPE_Leng\n1 EAST REGION       ER 21658EAAF84F4D8D 2014-12-05 41122.55 37392.39   10180.62\n  SHAPE_Area                       geometry PreSch Count\n1    4339824 MULTIPOLYGON (((42196.76 38...           72\n\n\nTo calculate the density of pre-school by planning subzone:\nThe code chunk below uses st_area() of sf package to derive the area of each planning subzone.\n\nmpsz3414$Area &lt;- mpsz3414 %&gt;%\n  st_area()\n\nNext, mutate() of dplyr package is used to compute the density by using the code chunk below.\n\nmpsz3414 &lt;- mpsz3414 %&gt;%\n  mutate(`PreSch Density` = `PreSch Count`/Area * 1000000)"
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "IS415-GA",
-    "section": "",
-    "text": "About\nWelcome to IS215 Geospatial Analytics Homepage. I’m Jezelei, a Y3 student majoring in IS, specializing in BA & SMT. In this website, you will find my coursework prepared for this course.\n\n\n\n\nHands-On Exercise 01\n\n\nBuilding Block 1: Geospatial Data Science with R"
-  },
-  {
     "objectID": "MPSZ-2019/MPSZ-2019.html",
     "href": "MPSZ-2019/MPSZ-2019.html",
-    "title": "IS415-GA",
-    "section": "",
-    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
-  },
-  {
-    "objectID": "In-Class_Exercise/InClassEx01/data/MPSZ-2019.html",
-    "href": "In-Class_Exercise/InClassEx01/data/MPSZ-2019.html",
     "title": "IS415-GA",
     "section": "",
     "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
