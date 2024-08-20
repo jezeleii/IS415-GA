@@ -1,6 +1,17 @@
 ---
 title: "IS415-GA"
+date: "August 18, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
 ---
+
+```{r setup, include=FALSE}
+# Set the working directory
+setwd("/Users/jezelei/jezeleii/IS415-GA")
+```
 
 # About
 
