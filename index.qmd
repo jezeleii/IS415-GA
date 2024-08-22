@@ -34,7 +34,7 @@ Hands-On Exercise 01
 
 <div>
 
-`<a href="`{=html}https://is415-ga-jezelei.netlify.app/HandsOnExercise/HandsOnEx01/HandsOnEx01.qmd`">`{=html}
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex01/hands-on_ex01`">`{=html}
 
 <img src="headerImages/Hands-on_Ex01_Header.png" alt="Hands-on Exercise 1" style="max-width:95%; height:auto; display: block; margin-left:0;"/>
 
@@ -62,7 +62,7 @@ Hands-On Exercise 02
 
 `<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex02`">`{=html}
 
-![Hands-on Exercise 1](headerImages/Hands-on_Ex02_Header.png){style="max-  display: block; margin-left:0;" width="95%"}
+![Hands-on Exercise 2](headerImages/Hands-on_Ex02_Header.png){style="max-  display: block; margin-left:0;" width="95%"}
 
 </a>
 
