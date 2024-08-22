@@ -44,3 +44,27 @@ Hands-On Exercise 01
 :::
 
 <hr/>
+
+::: {style="display:flex; align-items:center;"}
+<div>
+
+<h3 style="width:100;">
+
+Hands-On Exercise 02
+
+</h3>
+
+<p>Building Block 2: Thematic Mapping & GeoVisualization with R</p>
+
+</div>
+
+<div>
+
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex02`">`{=html}
+
+![Hands-on Exercise 2](headerImages/Hands-on_Ex02_Header.png){alt="Hands-on Exercise 1" style="max-  display: block; margin-left:0;" width="95%"}
+
+</a>
+
+</div>
+:::
