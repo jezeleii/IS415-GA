@@ -1,6 +1,12 @@
 ---
 title: "Hands-on Exercise 1"
 author: "Jezelei Manangan"
+date: "August 18, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
 ---
 
 # **1.0 Exercise Objectives**
@@ -97,7 +103,7 @@ pacman::p_load(sf,tidyverse)
 In this section, I have imported the following geospatial data into R by using [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package:
 
 |                       |                                                    |
-|-----------------------|-------------------------------------------------|
+|------------------------|-----------------------------------------------|
 | `MP14_SUBZONE_WEB_PL` | a polygon feature layer in ESRI shapefile format,  |
 | `CyclingPath`         | a line feature layer in ESRI shapefile format, and |
 | `PreSchool`           | a point feature layer in kml file format           |
@@ -109,7 +115,7 @@ Dataset used: `MP14_SUBZONE_WEB_PL`
 File Format: shapefile (shp) \| Data Frame Type: polygon feature
 
 ```{r}
-mpsz = st_read(dsn = "HandsOnExercise/HandsOnEx01/data/geospatial"
+mpsz = st_read(dsn = "data/geospatial"
                , layer = "MP14_SUBZONE_WEB_PL")
 ```
 
@@ -122,7 +128,7 @@ Dataset used: `CyclingPath`
 File Format: shapefile (shp) \| Data Frame Type: line feature
 
 ```{r}
-cyclingpath = st_read(dsn = "HandsOnExercise/HandsOnEx01/data/geospatial", layer = "CyclingPathGazette")
+cyclingpath = st_read(dsn = "data/geospatial", layer = "CyclingPathGazette")
 ```
 
 Interpretation : In the `cyclingpath` linestring feature data frame, there are 3138 features and 2 fields, and is in the **svy21** projected coordinates systems too.
@@ -134,7 +140,7 @@ Dataset used: `PreSchool`
 File Format: kml \| Data Frame Type: line feature
 
 ```{r}
-preschool = st_read("/Users/jezelei/jezeleii/IS415-GA/HandsOnExercise/HandsOnEx01/data/geospatial/PreSchoolsLocation.kml")
+preschool = st_read("data/geospatial/PreSchoolsLocation.kml")
 
 ```
 
@@ -288,7 +294,7 @@ Dataset used: `listings.csv` data downloaded from AirBnb.
 Since `listings` data set is in csv file format, we will use [*read_csv()*](https://readr.tidyverse.org/reference/read_delim.html) of **readr** package to import `listing.csv` as shown the code chunk below. The output R object is called `listings` and it is a [tibble data frame](https://r4ds.had.co.nz/tibbles.html).
 
 ```{r}
-listings <- read_csv("HandsOnExercise/HandsOnEx01/data/aspatial/listings.csv")
+listings <- read_csv("data/aspatial/listings.csv")
 ```
 
 After importing the data file into R, it is important for us to examine if the data file has been imported correctly.
@@ -317,7 +323,7 @@ listings_sf <- st_as_sf(listings,
 Learning Points from the arguments above:
 
 |                   |                                                                                                                                                                                                                                                                                                                          |
-|---------------|---------------------------------------------------------|
+|------------------|------------------------------------------------------|
 | *coords* argument | requires you to provide the column name of the x-coordinates first then followed by the column name of the y-coordinates.                                                                                                                                                                                                |
 | *crs* argument    | requires you to provide the coordinates system in epsg format. [EPSG: 4326](https://epsg.io/4326) is wgs84 Geographic Coordinate System and [EPSG: 3414](https://epsg.io/3414) is Singapore SVY21 Projected Coordinate System. You can search for other country’s epsg code by referring to [epsg.io](https://epsg.io/). |
 | *%\>%* (pipe)     | is used to nest *st_transform()* to transform the newly created simple feature data frame into svy21 projected coordinates system.                                                                                                                                                                                       |
