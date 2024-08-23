@@ -1,5 +1,5 @@
 ---
-title: "Hands-on_Ex02"
+title: "Hands-on Exercise 2"
 author: "Jezelei Manangan"
 date: "August 20, 2024"
 date-modified: "last-modified"
@@ -136,11 +136,11 @@ popdata2020_total <- popdata2020_step6 %>%
   mutate(`TOTAL` = rowSums(.[3:21]))
 
 #calculate DEPENDENCY RATIO
-popdata2020_dependency <- popdata2020_total %>% 
+popdata2020 <- popdata2020_total %>% 
   mutate(`DEPENDENCY` = (`YOUNG` + `AGED`) /`ECONOMY ACTIVE`) %>% select(`PA`, `SZ`, `YOUNG`, 
        `ECONOMY ACTIVE`, `AGED`, 
        `TOTAL`, `DEPENDENCY`)
-print(popdata2020_dependency)
+print(popdata2020)
 ```
 
 \
