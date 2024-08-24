@@ -42,7 +42,7 @@ pacman::p_load(sf,tmap,tidyverse)
 ## 2.1 Datasets Used
 
 |                                                                                                     |                                 |                                                                                                                                                                                                                                                                                           |
-|-----------------|-----------------|--------------------------------------|
+|------------------|------------------|-------------------------------------|
 | Master Plan 2014 Subzone Boundary (Web)                                                             | `MP14_SUBZONE_WEB_PL`)          | It consists of the geographical boundary of Singapore at the planning subzone level. The data is based on URA Master Plan 2014.                                                                                                                                                           |
 | Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020 | `respopagesextod2011to2020.csv` | This is an aspatial data fie. It can be downloaded at [Department of Statistics, Singapore](https://www.singstat.gov.sg/) Although it does not contain any coordinates values, but it’s PA and SZ fields can be used as unique identifiers to geocode to `MP14_SUBZONE_WEB_PL` shapefile. |
 
@@ -83,7 +83,7 @@ head(popdata)
 I will prepare a data table with year 2020 values, including the variables PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY.
 
 |                |                                                               |
-|-------------------|-----------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | Young          | age group 0 to 4 until age group 20 to 24                     |
 | Economy Active | age group 25-29 until age group 60-64                         |
 | Aged           | age group 65 and above,                                       |
@@ -306,9 +306,72 @@ tm_shape(mpsz_pop2020) +
 
 > Note: The distribution of quantile data classification methods are more evenly distributed than equal data classification methods
 
-DIY: Using what you had learned, prepare choropleth maps by using different classification methods supported by tmap and compare their differences.
+### DIY: Using what you had learned, prepare choropleth maps by using different classification methods supported by tmap and compare their differences.
 
-DIY: Preparing choropleth maps by using similar classification method but with different numbers of classes (i.e. 2, 6, 10, 20). Compare the output maps, what observation can you draw?
+```{r}
+map_equal <- tm_shape(mpsz_pop2020) + 
+  tm_polygons("DEPENDENCY", 
+          n = 5, 
+          style = "equal", 
+          title ="Equal Interval Classification") + 
+  tm_borders(alpha = 0.3)
+
+map_quantile <- tm_shape(mpsz_pop2020) + 
+  tm_polygons("DEPENDENCY", 
+          n = 5, 
+          style = "quantile",
+          title = "Quantile Classification") + 
+  tm_borders(alpha = 0.3)
+
+map_jenks <- tm_shape(mpsz_pop2020) + 
+  tm_polygons("DEPENDENCY", 
+          n = 5, 
+          style = "jenks", 
+          title = "Jenks Classification") + 
+  tm_borders(alpha = 0.3)
+
+tmap_arrange(map_equal, map_quantile, map_jenks)
+```
+
+### DIY: Preparing choropleth maps by using similar classification method but with different numbers of classes (i.e. 2, 6, 10, 20). Compare the output maps, what observation can you draw?
+
+```{r}
+map_2_classes <- tm_shape(mpsz_pop2020) + 
+                    tm_fill("DEPENDENCY", 
+                            n = 2, 
+                            style = "quantile",
+                            title = "2 Classes") + 
+                    tm_borders(alpha = 0.5)
+
+map_6_classes <- tm_shape(mpsz_pop2020) + 
+                    tm_fill("DEPENDENCY", 
+                            n = 6, 
+                            style = "quantile",
+                            title = "6 Classes") + 
+                    tm_borders(alpha = 0.5)
+
+map_10_classes <- tm_shape(mpsz_pop2020) + 
+                    tm_fill("DEPENDENCY", 
+                            n = 10, 
+                            style = "quantile",
+                            title = "10 Classes") + 
+                    tm_borders(alpha = 0.5)
+
+map_20_classes <- tm_shape(mpsz_pop2020) + 
+                    tm_fill("DEPENDENCY", 
+                            n = 20, 
+                            style = "quantile",
+                            title = "20 Classes") + 
+                    tm_borders(alpha = 0.5)
+
+tmap_arrange(map_2_classes, map_6_classes, map_10_classes, map_20_classes)
+```
+
+Learning point:
+
+-   When creating choropleth maps, the number of classes can significantly impact visualisation or interpretation. Most notable in the figure with 2 classes, it emphasizes the difference between 2 broad categories, but oversimplifies the data such that Class 1 (0.00 to 0.70) actually accounts for much less of the data spectrum compared to (0.70 to 19.00)
+
+-   Six classes is usually the widely used number for classes, providing optimal number and details for the user while making sure not to overwhelm them with the data (compared to 20 classes)
 
 ### 4.2 Plotting choropleth map with custom break
 
