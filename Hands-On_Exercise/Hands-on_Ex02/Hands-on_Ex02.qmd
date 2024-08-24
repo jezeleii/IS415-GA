@@ -42,7 +42,7 @@ pacman::p_load(sf,tmap,tidyverse)
 ## 2.1 Datasets Used
 
 |                                                                                                     |                                 |                                                                                                                                                                                                                                                                                           |
-|----------------|----------------|----------------------------------------|
+|-----------------|-----------------|--------------------------------------|
 | Master Plan 2014 Subzone Boundary (Web)                                                             | `MP14_SUBZONE_WEB_PL`)          | It consists of the geographical boundary of Singapore at the planning subzone level. The data is based on URA Master Plan 2014.                                                                                                                                                           |
 | Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020 | `respopagesextod2011to2020.csv` | This is an aspatial data fie. It can be downloaded at [Department of Statistics, Singapore](https://www.singstat.gov.sg/) Although it does not contain any coordinates values, but it’s PA and SZ fields can be used as unique identifiers to geocode to `MP14_SUBZONE_WEB_PL` shapefile. |
 
@@ -83,7 +83,7 @@ head(popdata)
 I will prepare a data table with year 2020 values, including the variables PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY.
 
 |                |                                                               |
-|------------------|------------------------------------------------------|
+|-------------------|-----------------------------------------------------|
 | Young          | age group 0 to 4 until age group 20 to 24                     |
 | Economy Active | age group 25-29 until age group 60-64                         |
 | Aged           | age group 65 and above,                                       |
@@ -92,7 +92,7 @@ I will prepare a data table with year 2020 values, including the variables PA, S
 
 ### 2.4.1 Data wrangling
 
-The following functions will be used
+The following functions will be used:
 
 |                                         |                   |
 |-----------------------------------------|-------------------|
@@ -144,8 +144,15 @@ print(popdata2020)
 ```
 
 \
-\
-\
+To see an overview of the column headers, we use the *colnames()* function after the *pivot_wider()* function has been implemented:
+
+```{r}
+col_names <- colnames(popdata2020_step3)
+
+for (i in seq_along(col_names)){
+  cat(i, col_names[i], "\n")
+}
+```
 
 ### 2.4.2 Joining the attribute data and geospatial data
 
