@@ -103,7 +103,7 @@ pacman::p_load(sf,tidyverse)
 In this section, I have imported the following geospatial data into R by using [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package:
 
 |                       |                                                    |
-|-------------------------|-----------------------------------------------|
+|-----------------------|----------------------------------------------------|
 | `MP14_SUBZONE_WEB_PL` | a polygon feature layer in ESRI shapefile format,  |
 | `CyclingPath`         | a line feature layer in ESRI shapefile format, and |
 | `PreSchool`           | a point feature layer in kml file format           |
@@ -322,7 +322,7 @@ listings_sf <- st_as_sf(listings,
 Learning Points from the arguments above:
 
 |                   |                                                                                                                                                                                                                                                                                                                          |
-|-------------------|-----------------------------------------------------|
+|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | *coords* argument | requires you to provide the column name of the x-coordinates first then followed by the column name of the y-coordinates.                                                                                                                                                                                                |
 | *crs* argument    | requires you to provide the coordinates system in epsg format. [EPSG: 4326](https://epsg.io/4326) is wgs84 Geographic Coordinate System and [EPSG: 3414](https://epsg.io/3414) is Singapore SVY21 Projected Coordinate System. You can search for other country’s epsg code by referring to [epsg.io](https://epsg.io/). |
 | *%\>%* (pipe)     | is used to nest *st_transform()* to transform the newly created simple feature data frame into svy21 projected coordinates system.                                                                                                                                                                                       |

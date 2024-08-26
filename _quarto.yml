@@ -57,7 +57,7 @@ website:
 
 format:
   html:
-    theme: flatly
+    theme: simplex
     css: styles.css
     toc: true
     toc-depth: 3
