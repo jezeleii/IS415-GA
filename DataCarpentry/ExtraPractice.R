@@ -133,46 +133,58 @@ harv_plots <- st_read("DataCarpentry/data/harv/harv_plots.csv",
 st_write(harv_plots, "harv_plots_new.shp")
 
 #lesson 10 - cropping data
-#libraries - sf , stars, ggplot 
+library(sf)
+library(stars)
+library(ggplot2)
+
 harv_boundary <- st_read("DataCarpentry/data/harv/harv_boundary.shp")
 harv_dtm <- read_stars("DataCarpentry/data/harv/harv_dtmfull.tif")
 harv_soils <- st_read("DataCarpentry/data/harv/harv_soils.shp")
 
-
-ggplot()+ 
-  geom_stars(data = harv_dtm)+ 
-  scale_fill_viridis_c() +
-  geom_sf(data = harv_boundary, alpha = 0)
-
-#st_crop function -- raster we want to crop and vector we want to crop it to 
+ggplot() + 
+  geom_stars(data = harv_dtm) + 
+  scale_fill_viridis_c() + 
+  geom_sf(data = harv_boundary, alpha = 0.2)
+  
+#use stcrop to get rid of the useless parts
 harv_dtm_cropped <- st_crop(harv_dtm, harv_boundary)
 harv_dtm
 harv_dtm_cropped
 
-#plot cropped
-ggplot()+ 
-  geom_stars(data = harv_dtm_cropped)+ 
-  scale_fill_viridis_c(na.value="transparent") +
-  geom_sf(data = harv_boundary, alpha = 0) + 
-  coord_sf(datum = st_crs(harv_boundary))
-
-#HIDE NULL VALUES BY SCALE FILL COMMAND
-
-#or cropping to a certain box (bbox)
-# Correctly creating the bounding box with proper syntax
-bbox <- st_bbox(c(xmin = 731000, ymin = 4713000, xmax = 732000, ymax = 4714000))
-
-# Converting bbox to an sf object with the correct CRS
-bbox <- st_as_sfc(bbox, crs = st_crs(harv_dtm))
-
-# Cropping the raster using the bbox
-harv_dtm_small <- st_crop(harv_dtm, bbox) #why is there an error
-harv_soils_small <- st_crop(harv_soils, bbox)
 
 ggplot() + 
-  geom_stars(data = harv_dtm_small)+
-  scale_fill_viridis_c()+
+  geom_stars(data = harv_dtm_cropped) + 
+  scale_fill_viridis_c(na.value = "transparent") + 
+  geom_sf(data = harv_boundary, alpha = 0.2)
+
+#masking data -- keep the full set of data as opposed to cropping it smaller 
+#harv_dtm_cropped <- st_crop(harv_dtm, harv_boundary, crop = FALSE)
+
+#crop to a bounding box -- using st crop; pass a square region instead of polygon 
+ggplot() + 
+  geom_stars(data = harv_dtm_cropped) + 
+  scale_fill_viridis_c(na.value = "transparent") + 
+  geom_sf(data = harv_boundary, alpha = 0.2) + 
+  coord_sf(datum = st_crs(harv_boundary))
+
+bbox <- st_bbox(c(xmin = 731000, ymin = 4713000, xmax = 732000, ymax = 4714000), 
+                crs = st_crs(harv_dtm))
+
+harv_dtm_small <- st_crop(harv_dtm, bbox)
+harv_soils_small <- st_crop(harv_soils, bbox)
+
+
+ggplot() + 
+  geom_stars(data = harv_dtm_small) + 
+  scale_fill_viridis_c() + 
   geom_sf(data = harv_soils_small, alpha = 0.5)
+
+
 #lesson 11 - saving / writing spatial data
+#write and read functions 
+
+write_stars(harv_dtm_cropped, "harv_dtm_cropped.tif")
+read_stars("harv_dtm_cropped.tif")
 
 
+st_write(harv_soils_small, "harv_soils_small.shp")

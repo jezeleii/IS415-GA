@@ -42,7 +42,7 @@ pacman::p_load(sf,tmap,tidyverse)
 ## 2.1 Datasets Used
 
 |                                                                                                     |                                 |                                                                                                                                                                                                                                                                                           |
-|------------------|------------------|-------------------------------------|
+|------------------|------------------|------------------------------------|
 | Master Plan 2014 Subzone Boundary (Web)                                                             | `MP14_SUBZONE_WEB_PL`)          | It consists of the geographical boundary of Singapore at the planning subzone level. The data is based on URA Master Plan 2014.                                                                                                                                                           |
 | Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2011-2020 | `respopagesextod2011to2020.csv` | This is an aspatial data fie. It can be downloaded at [Department of Statistics, Singapore](https://www.singstat.gov.sg/) Although it does not contain any coordinates values, but it’s PA and SZ fields can be used as unique identifiers to geocode to `MP14_SUBZONE_WEB_PL` shapefile. |
 
@@ -83,7 +83,7 @@ head(popdata)
 I will prepare a data table with year 2020 values, including the variables PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY.
 
 |                |                                                               |
-|--------------------|----------------------------------------------------|
+|--------------------|---------------------------------------------------|
 | Young          | age group 0 to 4 until age group 20 to 24                     |
 | Economy Active | age group 25-29 until age group 60-64                         |
 | Aged           | age group 65 and above,                                       |
@@ -583,11 +583,11 @@ map_north <- tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N=="NORTH REGION", ]) +
           legend.hist = TRUE, 
           legend.is.portrait = TRUE) + 
   tm_layout(title = 'NORTH Region', 
-            title.position = c('right', 'top'), 
+            title.position = c('center', 'top'), 
             legend.outside = TRUE, 
             legend.height = 0.45, 
             legend.width = 5.0, 
-            legend.position = c("right", "bottom"), 
+            legend.position = c("center", "bottom"), 
             frame = FALSE) +
   tm_borders(alpha = 0.3)
 

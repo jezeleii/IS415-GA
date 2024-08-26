@@ -3,7 +3,9 @@
   "result": {
     "engine": "knitr",
     "markdown": "---\ntitle: \"IS415-GA\"\ndate: \"August 18, 2024\"\ndate-modified: \"last-modified\"\nexecute: \n  eval: true\n  echo: true\n  freeze: true\n---\n\n\n\n\n# About\n\nWelcome to **IS215 Geospatial Analytics Homepage**. I'm Jezelei, a Y3 student majoring in IS, specializing in BA & SMT. In this website, you will find my coursework and geospatial analysis projects.\n\n<hr/>\n\n::: {style=\"display:flex; align-items:center;\"}\n<div>\n\n<h3 style=\"width:100;\">\n\nHands-On Exercise 01\n\n</h3>\n\n<p>Building Block 1: Geospatial Data Science with R</p>\n\n</div>\n\n<div>\n\n`<a href=\"`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex01/hands-on_ex01`\">`{=html}\n\n<img src=\"headerImages/Hands-on_Ex01_Header.png\" alt=\"Hands-on Exercise 1\" style=\"max-width:95%; height:auto; display: block; margin-left:0;\"/>\n\n</a>\n\n</div>\n:::\n\n<hr/>\n\n::: {style=\"display:flex; align-items:center;\"}\n<div>\n\n<h3 style=\"width:100;\">\n\nHands-On Exercise 02\n\n</h3>\n\n<p>Building Block 2: Thematic Mapping & GeoVisualization with R</p>\n\n</div>\n\n<div>\n\n`<a href=\"`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex02`\">`{=html}\n\n![Hands-on Exercise 2](headerImages/Hands-on_Ex02_Header.png){style=\"max-  display: block; margin-left:0;\" width=\"95%\"}\n\n</a>\n\n</div>\n:::\n",
-    "supporting": [],
+    "supporting": [
+      "index_files"
+    ],
     "filters": [
       "rmarkdown/pagebreak.lua"
     ],
