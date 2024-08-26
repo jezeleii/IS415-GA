@@ -471,7 +471,13 @@ dbl (2): Pop, Time
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>mpsz_pop2023 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(popdata2023, mpsz19_shp,</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"SZ"</span> <span class="ot">=</span> <span class="st">"SUBZONE_N"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>left: spatial data because we need to have the geometric data</p>
+<dl>
+<dt>Things to note:</dt>
+<dd>
+<p>mutate_at vs mutate</p>
+<p>mpsz_pop2023 : conduct a left join where the ‘left’ dataset needs to contain the geometric dataset</p>
+</dd>
+</dl>
 
 
 </section>
