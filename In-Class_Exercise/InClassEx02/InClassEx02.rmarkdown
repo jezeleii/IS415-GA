@@ -11,7 +11,9 @@ execute:
   freeze: true
 ---
 
+
 # Getting started
+
 
 ```{r}
 pacman::p_load(tidyverse,sf)
@@ -22,9 +24,11 @@ pacman::p_load(tidyverse,sf)
 pacman::p_load(tidyverse,sf, ggstatsplot, tmap)
 ```
 
+
 # Working with Master Plan Planning Sub-zone Data
 
 This code chunk imports shapefile:
+
 
 ```{r}
 mpsz14_shp <- st_read(dsn = "data/", layer = "MP14_SUBZONE_WEB_PL")
@@ -34,7 +38,9 @@ mpsz14_shp <- st_read(dsn = "data/", layer = "MP14_SUBZONE_WEB_PL")
 class(mpsz14_shp)
 ```
 
+
 This code chunk imports kml. However the file is corrupted. Take the shapefile accordingly:
+
 
 ```{r}
 #| output: false
@@ -43,19 +49,23 @@ st_write(mpsz14_shp, "data/MP14_SUBZONE_WEB_PL.kml",
                       delete_dsn = TRUE)
 ```
 
+
 Why does the code not work initially? 
 
 :   The file is likely corrupted. To resolve this, take the shape file accordingly.
 
     Futhermore, delete_dsn() is needed to check if the dataset exists if you are writing it over.
 
+
 ```{r}
 mpsz14_kml <- st_read("data/MP14_SUBZONE_WEB_PL.kml")
 ```
 
+
 ## Importing Data from MPSZ_2019
 
 This code chunk imports the MPSSZ-2019 shapefile:
+
 
 ```{r}
 mpsz19_shp <- st_read(dsn = "data/", layer = "MPSZ-2019") %>% 
@@ -66,20 +76,26 @@ mpsz19_shp <- st_read(dsn = "data/", layer = "MPSZ-2019") %>%
 mpsz19_kml <- st_read("data/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
 ```
 
+
 This code chunk imports the preschool data:
+
 
 ```{r}
 preschool <- st_read("data/PreSchoolsLocation.kml") %>% 
   st_transform(crs = 3414)
 ```
 
+
 This code chunk loads the population data:
+
 
 ```{r}
 popdata <- read_csv("data/respopagesextod2023.csv")
 ```
 
+
 1.  Segregate the df showing the planning subzone and area
+
 
 ```{r}
 popdata2023 <- popdata %>% 
@@ -89,7 +105,9 @@ popdata2023 <- popdata %>%
   pivot_wider(names_from=AG, values_from = POP)
 ```
 
+
 Break down the code step by step:
+
 
 ```{r}
 #Group By Function 
@@ -106,13 +124,17 @@ popdata2023 <- popdata_step2 %>%
   pivot_wider(names_from=AG, values_from = POP)
 ```
 
+
 > Check the columns :
+
 
 ```{r}
 colnames(popdata2023)
 ```
 
+
 Process the code for popdata2023 :
+
 
 ```{r}
 popdata2023 <- popdata2023 %>% 
@@ -124,7 +146,9 @@ popdata2023 <- popdata2023 %>%
   select(`PA`, `SZ`, `YOUNG`, `ECONOMY ACTIVE`, `AGED`, `TOTAL`, `DEPENDENCY`)
 ```
 
+
 Joining popdata2023 and mpsz19_shp, we first convert the names to_upper(), as r is case sensitive.
+
 
 ```{r}
 popdata2023 <- popdata2023 %>% 
@@ -137,8 +161,10 @@ mpsz_pop2023 <- left_join(popdata2023, mpsz19_shp,
                           by = c("SZ" = "SUBZONE_N"))
 ```
 
+
 Things to note: 
 
 :   mutate_at vs mutate
 
     mpsz_pop2023 : conduct a left join where the 'left' dataset needs to contain the geometric dataset
+
