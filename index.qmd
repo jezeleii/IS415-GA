@@ -75,14 +75,14 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 ::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 02</h3>
+<h3>Hands-On \n Exercise 03</h3>
 
 <p>Building Block 2: Thematic Mapping & GeoVisualization with R</p>
 
 </div>
 
 ::: {style="width: 100%"}
-`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex03`">`{=html}
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex03/hands-on_ex03`">`{=html}
 
 ![](headerImages/Hands-on_Ex03_Header.png){fig-align="right" width="90%"}
 
