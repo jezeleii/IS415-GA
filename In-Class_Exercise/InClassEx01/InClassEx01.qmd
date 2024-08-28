@@ -2,11 +2,65 @@
 title: "In-Class Exercise 01: Geospatial Data Science"
 author: "Jezelei Manangan"
 date: '18 August, 2024'
-date-modified: '19 August 2024'
+date-modified: r.sys.date()
 execute:
    eval: true
    echo: true
    freeze: true
 ---
 
-test
+As the introductory session, here are some references for useful materials outlined in the course syllabus:
+
+## Chapter 1
+
+-   [“Spatial Data, Spatial Analysis, Spatial Data Science”](https://www.youtube.com/watch?v=MmCYeJ27DsA) by Prof. Luc Anselin. (This is a long lecture 1hr 15minutes but don’t turn away just because it is lengthy.)
+
+-   Xie, Yiqun et. al. (2017) [“Transdisciplinary Foundations of Geospatial Data Science”](https://www.mdpi.com/2220-9964/6/12/395) *ISPRS International Journal of Geo-information*, 2017, Vol.6 (12), p.395.
+
+-   Paez, A., and Scott, D.M. (2004) “Spatial statistics for urban analysis: A review of techniques with examples”, *GeoJournal*, 61: 53-67. Available in SMU eLibrary.
+
+-   [“Geospatial Analytics Will Eat The World, And You Won’t Even Know It”](https://www.forbes.com/sites/forbestechcouncil/2018/07/16/geospatial-analytics-will-eat-the-world-and-you-wont-even-know-it/#31f961db726a).
+
+## Chapter 2
+
+**SELF-READING:**
+
+-   [Proportional Symbols](https://www.axismaps.com/guide/univariate/proportional-symbols/)
+
+-   [Choropleth Maps](https://en.wikipedia.org/wiki/Choropleth_map%20Choropleth%20map)
+
+-   [The Basics of Data Classification](https://www.axismaps.com/guide/data/data-classification/)
+
+-   [Choropleth Mapping with Exploratory Data Analysis](https://www.directionsmag.com/article/3363)
+
+-   Tennekes, M. (2018) “[tmap: Thematic Maps in R](https://www.jstatsoft.org/article/view/v084i06)”, *Journal of Statistical Software*, Vol 84:6, 1-39.
+
+**REFERENCES:**
+
+-   [The Concept of Map Symbols](https://www.yaaka.cc/unit/the-concept-of-map-symbols/)
+
+-   [Choropleth map](https://en.wikipedia.org/wiki/Choropleth_map)
+
+-   [Choropleth Maps – A Guide to Data Classification](https://gisgeography.com/choropleth-maps-data-classification/)
+
+-   [Bivariate Choropleth](https://www.axismaps.com/guide/multivariate/bivariate-choropleth/)
+
+-   [Value-by-alpha maps](http://andywoodruff.com/blog/value-by-alpha-maps/)
+
+-   [What to consider when creating choropleth maps](https://blog.datawrapper.de/choroplethmaps/)
+
+## Chapter 3
+
+## Chapter 4
+
+## Chapter 5
+
+## Chapter 6
+
+## Chapter 7
+
+## Chapter 8
+
+## Chapter 9
+
+## Chapter 10

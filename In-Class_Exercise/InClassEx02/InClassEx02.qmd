@@ -11,7 +11,7 @@ execute:
   freeze: true
 ---
 
-# Getting started
+# 1.0 Getting started
 
 ```{r}
 pacman::p_load(tidyverse,sf)
@@ -22,7 +22,7 @@ pacman::p_load(tidyverse,sf)
 pacman::p_load(tidyverse,sf, ggstatsplot, tmap)
 ```
 
-# Working with Master Plan Planning Sub-zone Data
+# 2.0 Working with Master Plan Planning Sub-zone Data
 
 This code chunk imports shapefile:
 
@@ -43,7 +43,7 @@ st_write(mpsz14_shp, "data/MP14_SUBZONE_WEB_PL.kml",
                       delete_dsn = TRUE)
 ```
 
-Why does the code not work initially? 
+Why does the code not work initially?
 
 :   The file is likely corrupted. To resolve this, take the shape file accordingly.
 
@@ -53,7 +53,7 @@ Why does the code not work initially?
 mpsz14_kml <- st_read("data/MP14_SUBZONE_WEB_PL.kml")
 ```
 
-## Importing Data from MPSZ_2019
+## 2. 1 Importing Data from MPSZ_2019
 
 This code chunk imports the MPSSZ-2019 shapefile:
 
@@ -79,7 +79,7 @@ This code chunk loads the population data:
 popdata <- read_csv("data/respopagesextod2023.csv")
 ```
 
-1.  Segregate the df showing the planning subzone and area
+Step 1: Segregate the df showing the planning subzone and area
 
 ```{r}
 popdata2023 <- popdata %>% 
@@ -89,7 +89,7 @@ popdata2023 <- popdata %>%
   pivot_wider(names_from=AG, values_from = POP)
 ```
 
-Break down the code step by step:
+Step 1(a) : Alternative; Break down the code step by step:
 
 ```{r}
 #Group By Function 
@@ -137,8 +137,12 @@ mpsz_pop2023 <- left_join(popdata2023, mpsz19_shp,
                           by = c("SZ" = "SUBZONE_N"))
 ```
 
-Things to note: 
+Things to note:
 
-:   mutate_at vs mutate
+-   mutate_at vs mutate
 
-    mpsz_pop2023 : conduct a left join where the 'left' dataset needs to contain the geometric dataset
+    -   mutate() allows you to create new variables for specific variables
+
+    -   mutate_at() allows to you to create new variables for a group of variables that match the criteria
+
+-   mpsz_pop2023 : conduct a left join where the 'left' dataset needs to contain the geometric dataset

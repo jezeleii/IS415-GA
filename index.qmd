@@ -13,34 +13,41 @@ execute:
 setwd("/Users/jezelei/jezeleii/IS415-GA")
 ```
 
-# About
-
-Welcome to **IS215 Geospatial Analytics Homepage**. I'm Jezelei, a Y3 student majoring in IS, specializing in BA & SMT. In this website, you will find my coursework and geospatial analysis projects.
-
+```{=html}
+<section style="display: flex; justify-content: space-between; width:100%;">
+  <!-- Column 1 -->
+  <div style="flex: 1; text-align: center; padding: 10px; margin:0;">
+    <img src="headerImages/cover.png"style="max-width: 100%; height: auto;"/>
+  </div>
+  
+  <!-- Column 2 -->
+  <div style="flex: 1; text-align: left; padding-top: 50px ;">
+    <h1 style="font-weight: bold; color: #1E2A39;">JEZELEI MANANGAN</h1>
+    <p>Penultimate Year, BSc Information Systems SMU</p>
+    <p style="max-width: 600px; font-size:11px">
+      Explore my work and see how I turn complex datasets into actionable insights. Whether you’re interested in GIS, remote sensing, or spatial analysis, you’ll find a collection of projects that demonstrate my skills in R and newfound knowledge in geospatial analytics.
+    </p>
+  </div>
+</section>
+```
 <hr/>
 
 ::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3 style="width:100;">
-
-Hands-On Exercise 01
-
-</h3>
+<h3>Hands-On \n Exercise 01</h3>
 
 <p>Building Block 1: Geospatial Data Science with R</p>
 
 </div>
 
-<div>
-
+::: {style="width: 100%"}
 `<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex01/hands-on_ex01`">`{=html}
 
-<img src="headerImages/Hands-on_Ex01_Header.png" alt="Hands-on Exercise 1" style="max-width:95%; height:auto; display: block; margin-left:0;"/>
+![](headerImages/Hands-on_Ex01_Header.png){alt="Hands-on Exercise 1" style="max-  display: block; margin-left:0;" fig-align="center" width="90%"}
 
 </a>
-
-</div>
+:::
 :::
 
 <hr/>
@@ -48,23 +55,17 @@ Hands-On Exercise 01
 ::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3 style="width:100;">
-
-Hands-On Exercise 02
-
-</h3>
+<h3>Hands-On \n Exercise 02</h3>
 
 <p>Building Block 2: Thematic Mapping & GeoVisualization with R</p>
 
 </div>
 
-<div>
-
+::: {style="width: 100%"}
 `<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex02`">`{=html}
 
-![Hands-on Exercise 2](headerImages/Hands-on_Ex02_Header.png){style="max-  display: block; margin-left:0;" width="95%"}
+![](headerImages/Hands-on_Ex02_Header.png){style="max-  display: block; margin-left:0;" fig-align="center" width="90%"}
 
 </a>
-
-</div>
+:::
 :::
