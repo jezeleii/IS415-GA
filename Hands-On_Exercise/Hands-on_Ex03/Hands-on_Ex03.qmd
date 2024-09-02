@@ -30,7 +30,7 @@ The specific questions we would like to answer are as follows:
 # 2.0 Data Packages Used
 
 |                       |                                                                                                                                                                                        |
-|-----------------|-------------------------------------------------------|
+|-------------------|-----------------------------------------------------|
 | `CHILDCARE`           | Point feature data providing both location and attribute information of childcare centres. It was downloaded from Data.gov.sg and is in geojson format.                                |
 | `MP14_SUBZONE_WEB_PL` | Polygon feature data providing information of URA 2014 Master Plan Planning Subzone boundary data. It is in ESRI shapefile format. This data set was also downloaded from Data.gov.sg. |
 | `CostalOutline`       | Polygon feature data showing the national boundary of Singapore. It is provided by SLA and is in ESRI shapefile format.                                                                |
@@ -38,7 +38,7 @@ The specific questions we would like to answer are as follows:
 # 3.0 Installing & Loading R Packages
 
 |                                                                             |                                                                                                                                                                                                                                   |
-|--------------------|----------------------------------------------------|
+|----------------------|--------------------------------------------------|
 | [**sf**](https://r-spatial.github.io/sf/)                                   | a relatively new R package specially designed to import, manage and process vector-based geospatial data in R.                                                                                                                    |
 | [**spatstat**](https://spatstat.org/)                                       | which has a wide range of useful functions for point pattern analysis. In this hands-on exercise, it will be used to perform 1st- and 2nd-order spatial point patterns analysis and derive kernel density estimation (KDE) layer. |
 | [**raster**](https://cran.r-project.org/web/packages/raster/)               | which reads, writes, manipulates, analyses and model of gridded spatial data (i.e. raster). In this hands-on exercise, it will be used to convert image output generate by spatstat into raster format.                           |
@@ -354,7 +354,7 @@ tmap_mode('plot')
 ### 5.4.1 How to spot the duplicate points from the map shown
 
 | Method              | Description                                                                                         | Possible Challenges             |
-|-----------------|---------------------------------------|-----------------|
+|------------------|------------------------------------|------------------|
 | Deleting Duplicates | Filtering the duplicates and deleting them from the dataset                                         | Some useful points will be lost |
 | Jittering           | Add a small perturbation to the duplicate points so that they do not occupy the exact same space    |                                 |
 | Marks               | Make each point 'unique' and then attach the duplicates of the points to the patterns as **marks.** |                                 |
@@ -528,11 +528,13 @@ plot(kde_childcareSG.bw.ppl)
 ```
 
 ```{r}
-par(mfrow=c(2,2))
+
+par(mfrow=c(2,2), mar=c(3, 3, 2, 1)) 
 plot(kde_childcareSG.bw, main="bw.diggle")
-plot(kde_childcareSG.bw.CvL,main="bw.CvL")
+plot(kde_childcareSG.bw.CvL, main="bw.CvL")
 plot(kde_childcareSG.bw.scott, main="bw.scott")
-plot(kde_childcareSG.bw.ppl,main="bw.ppl")
+plot(kde_childcareSG.bw.ppl, main="bw.ppl")
+
 ```
 
 Baddeley et. (2016) suggested the use of the *bw.ppl()* algorithm because in ther experience it tends to produce the more appropriate values when the pattern consists predominantly of tight clusters. But they also insist that if the purpose of once study is to detect a single tight cluster in the midst of random noise then the *bw.diggle()* method seems to work best.
@@ -557,7 +559,7 @@ By default, the kernel method used in *density.ppp()* is *gaussian*. But there a
 The code chunk below will be used to compute three more kernel density estimations by using these three kernel function.
 
 ```{r}
-par(mfrow=c(2,2))
+par(mfrow=c(2,2), mar=c(2,2,2,2))
 plot(density(childcareSG_ppp.km, 
              sigma=bw.ppl, 
              edge=TRUE, 
@@ -676,7 +678,6 @@ jw <- mpsz_sf %>%
 Plotting target planning areas:
 
 ```{r}
-par(mfrow=c(2,2))
 plot(pg, main="Punggol")
 ```
 
@@ -712,7 +713,7 @@ childcare_ck_ppp = childcare_ppp_jitter[ck_owin]
 childcare_jw_ppp = childcare_ppp_jitter[jw_owin]
 ```
 
-Next, *rescale.ppp()* function is used to trasnform the unit of measurement from metre to kilometre
+Next, *rescale.ppp()* function is used to transform the unit of measurement from metre to kilometre
 
 ```{r}
 childcare_pg_ppp.km = rescale.ppp(childcare_pg_ppp, 1000, "km")
@@ -724,7 +725,7 @@ childcare_jw_ppp.km = rescale.ppp(childcare_jw_ppp, 1000, "km")
 The code chunk below is used to plot these four study areas and the locations of the childcare centres.
 
 ```{r}
-par(mfrow=c(2,2))
+par(mfrow=c(2,2), mar=c(2,2,2,2))
 plot(childcare_pg_ppp.km, main="Punggol")
 plot(childcare_tm_ppp.km, main="Tampines")
 plot(childcare_ck_ppp.km, main="Choa Chu Kang")
@@ -736,7 +737,7 @@ plot(childcare_jw_ppp.km, main="Jurong West")
 The code chunk below will be used to compute the KDE of these four planning area. ***bw.diggle*** method is used to derive the bandwidth of each
 
 ```{r}
-par(mfrow=c(2,2))
+par(mfrow=c(2,2), mar=c(2,2,2,2))
 plot(density(childcare_pg_ppp.km, 
              sigma=bw.diggle, 
              edge=TRUE, 
@@ -765,7 +766,7 @@ plot(density(childcare_jw_ppp.km,
 For comparison purposes, we will use 250m as the bandwidth.
 
 ```{r}
-par(mfrow=c(2,2))
+par(mfrow=c(2,2), mar=c(2,2,2,2))
 plot(density(childcare_ck_ppp.km, 
              sigma=0.25, 
              edge=TRUE, 
