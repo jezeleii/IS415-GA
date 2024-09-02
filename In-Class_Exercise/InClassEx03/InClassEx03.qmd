@@ -53,10 +53,6 @@ childcare_sf <- st_read("data/aspatial/child-care-services-geojson.geojson")
 mpsz_sf <- st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
 ```
 
-```{r}
-sg_sf <- st_read(dsn = "data/geospatial", layer = "CostalOutline")
-```
-
 # 3.0 GeoSpatial Data Wrangling
 
 ## 3.1 Assigning Standard CRS
@@ -76,4 +72,13 @@ plot(sg_sf)
 ```
 
 ```{r}
+tmap_mode("plot")
+acled_sf %>% 
+  filter(year == 2023 | event_type == "Political Violence") %>% 
+  tm_shape() + 
+  tm_dots() 
+```
+
+```{r}
+tmap_mode('plot')
 ```

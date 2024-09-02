@@ -30,7 +30,7 @@ The specific questions we would like to answer are as follows:
 # 2.0 Data Packages Used
 
 |                       |                                                                                                                                                                                        |
-|--------------|----------------------------------------------------------|
+|-----------------|-------------------------------------------------------|
 | `CHILDCARE`           | Point feature data providing both location and attribute information of childcare centres. It was downloaded from Data.gov.sg and is in geojson format.                                |
 | `MP14_SUBZONE_WEB_PL` | Polygon feature data providing information of URA 2014 Master Plan Planning Subzone boundary data. It is in ESRI shapefile format. This data set was also downloaded from Data.gov.sg. |
 | `CostalOutline`       | Polygon feature data showing the national boundary of Singapore. It is provided by SLA and is in ESRI shapefile format.                                                                |
@@ -38,7 +38,7 @@ The specific questions we would like to answer are as follows:
 # 3.0 Installing & Loading R Packages
 
 |                                                                             |                                                                                                                                                                                                                                   |
-|-------------------|-----------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | [**sf**](https://r-spatial.github.io/sf/)                                   | a relatively new R package specially designed to import, manage and process vector-based geospatial data in R.                                                                                                                    |
 | [**spatstat**](https://spatstat.org/)                                       | which has a wide range of useful functions for point pattern analysis. In this hands-on exercise, it will be used to perform 1st- and 2nd-order spatial point patterns analysis and derive kernel density estimation (KDE) layer. |
 | [**raster**](https://cran.r-project.org/web/packages/raster/)               | which reads, writes, manipulates, analyses and model of gridded spatial data (i.e. raster). In this hands-on exercise, it will be used to convert image output generate by spatstat into raster format.                           |
@@ -193,23 +193,24 @@ sg_sp
 
 Now, we will use *as.ppp()* function of **spatstat** to convert the spatial data into **spatstat**’s ***ppp*** object format.
 
+Using st_coordinates and st_bbox:
+
 ```{r}
 childcare_ppp <- as.ppp(st_coordinates(childcare_sf), st_bbox(childcare_sf))
 ```
 
-Using st_coordinates and st_bbox:
+Without these functions:
 
 ```{r}
-#childcare_ppp_crds <- as.ppp(st_coordinates(childcare_sf), st_bbox(childcare_sf))
+childcare_ppp_toClean <- as.ppp(childcare_sf)
 ```
 
 Plot ***childcare_ppp*** and examine the difference.
 
 ```{r}
-
-#par(mfrow=c(1,2))
-#plot(childcare_ppp)
-#plot(childcare_ppp_crds)
+par(mfrow=c(1,2))
+plot(childcare_ppp)
+plot(childcare_ppp_toClean)
 ```
 
 > Question to address:
@@ -231,7 +232,7 @@ summary(childcare_ppp)
 ```
 
 ```{r}
-#summary(childcare_ppp_crds)
+summary(childcare_ppp_toClean)
 ```
 
 **Warning: (Regarding duplicates)** In spatial point patterns analysis an issue of significant is the presence of duplicates. The statistical methodology used for spatial point patterns processes is based largely on the assumption that process are *simple*, that is, that the points cannot be coincident.
@@ -299,7 +300,7 @@ childcare_sf_cleaned <- childcare_sf_cleaned[, 1:(ncol(childcare_sf_cleaned))]
 str(childcare_sf_cleaned)
 ```
 
-From the structure of the childcare_sf_cleaned(), we can further improve how the data is shown by renaming the first column to KML_ID, and shifting the 'Name' Column to the second column, to accurately reflect the information in the data. In the code above we've removed 'ADDRESSBLOCKHOUSENUMBER' , so we will add it back in its respective position.
+From the sxtructure of the childcare_sf_cleaned(), we can further improve how the data is shown by renaming the first column to KML_ID, and shifting the 'Name' Column to the second column, to accurately reflect the information in the data. In the code above we've removed 'ADDRESSBLOCKHOUSENUMBER' , so we will add it back in its respective position.
 
 ```{r}
 names(childcare_sf_cleaned)[1] <- "kml_id"
@@ -353,7 +354,7 @@ tmap_mode('plot')
 ### 5.4.1 How to spot the duplicate points from the map shown
 
 | Method              | Description                                                                                         | Possible Challenges             |
-|---------------|------------------------------------------|---------------|
+|-----------------|---------------------------------------|-----------------|
 | Deleting Duplicates | Filtering the duplicates and deleting them from the dataset                                         | Some useful points will be lost |
 | Jittering           | Add a small perturbation to the duplicate points so that they do not occupy the exact same space    |                                 |
 | Marks               | Make each point 'unique' and then attach the duplicates of the points to the patterns as **marks.** |                                 |
@@ -614,8 +615,8 @@ plot(kde_childcareSG_adaptive, main="Adaptive bandwidth")
 The result is the same, we just convert it so that it is suitable for mapping purposes
 
 ```{r}
-#gridded_kde_childcareSG_bw <- as.SpatialGridDataFrame.im(kde_childcareSG.bw)
-#spplot(gridded_kde_childcareSG_bw)
+gridded_kde_childcareSG_bw <- as(kde_childcareSG.bw, "SpatialGridDataFrame")
+spplot(gridded_kde_childcareSG_bw)
 ```
 
 ### 7.3.1 Converting gridded output into raster
