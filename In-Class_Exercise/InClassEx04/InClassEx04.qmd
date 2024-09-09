@@ -194,14 +194,14 @@ summary(st_kde)
 
 In the code chunk below, `plot()` of R base is used to the KDE for between July 2023 - December 2023.
 
-```{r, fig.width=12, fig.height=10}
+```{r}
+par(mfrow = c(2, 3), fig.width = 12, fig.height = 10)
 
 # Define the months you want to plot (July to December)
 tims <- c(7,8,9,10,11,12)  
 
 for (i in tims){
   kde_values <- st_kde$z[[i]]$v
-  
   image(kde_values,
         main=paste("KDE at month", i))
 }

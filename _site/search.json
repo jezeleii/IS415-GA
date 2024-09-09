@@ -613,6 +613,6 @@
     "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#plotting-the-spatio-temporal-kde-object",
     "title": "In-class Exercise 04",
     "section": "5.5 Plotting the spatio-temporal KDE Object",
-    "text": "5.5 Plotting the spatio-temporal KDE Object\nIn the code chunk below, plot() of R base is used to the KDE for between July 2023 - December 2023.\n\n# Define the months you want to plot (July to December)\ntims &lt;- c(7,8,9,10,11,12)  \n\nfor (i in tims){\n  kde_values &lt;- st_kde$z[[i]]$v\n  \n  image(kde_values,\n        main=paste(\"KDE at month\", i))\n}"
+    "text": "5.5 Plotting the spatio-temporal KDE Object\nIn the code chunk below, plot() of R base is used to the KDE for between July 2023 - December 2023.\n\npar(mfrow = c(2, 3), fig.width = 12, fig.height = 10)\n\nWarning in par(mfrow = c(2, 3), fig.width = 12, fig.height = 10): \"fig.width\"\nis not a graphical parameter\n\n\nWarning in par(mfrow = c(2, 3), fig.width = 12, fig.height = 10): \"fig.height\"\nis not a graphical parameter\n\n# Define the months you want to plot (July to December)\ntims &lt;- c(7,8,9,10,11,12)  \n\nfor (i in tims){\n  kde_values &lt;- st_kde$z[[i]]$v\n  image(kde_values,\n        main=paste(\"KDE at month\", i))\n}"
   }
 ]
