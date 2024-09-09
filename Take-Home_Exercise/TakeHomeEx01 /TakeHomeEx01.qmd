@@ -1,0 +1,290 @@
+---
+title: "Take-Home Exercise 2"
+author: "Jezelei Manangan"
+date: "September 5, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
+---
+
+# 1.0 Overview
+
+## 1.1 Objectives
+
+-   Using appropriate function of sf and tidyverse packages, import and transform the downloaded armed conflict data and administrative boundary data into sf tibble data.frames.
+
+-   Using the geospatial data sets prepared, derive quarterly KDE layers.
+
+-   Using the geospatial data sets prepared, perform 2nd-Order Spatial Point Patterns Analysis.
+
+-   Using the geospatial data sets prepared, derive quarterly spatio-temporal KDE layers.
+
+-   Using the geospatial data sets prepared, perform 2nd-Order Spatio-temporal Point Patterns Analysis.
+
+-   Using appropriate tmap functions, display the KDE and Spatio-temporal KDE layers on openstreetmap of Myanmar.
+
+-   Describe the spatial patterns revealed by the KDE and Spatio-temporal KDE maps.
+
+# 2.0 The Data
+
+## 2.1 Packages Used
+
+The table below provides a summary of the packages I've used for this exercise
+
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [**tidyverse**](https://www.tidyverse.org/)                                   | for performing data science tasks such as importing, wrangling and visualising data.                                                                                                                                                                                                                                                  |
+|                                                                               |                                                                                                                                                                                                                                                                                                                                       |
+|                                                                               | It contains the following packages used :                                                                                                                                                                                                                                                                                             |
+|                                                                               |                                                                                                                                                                                                                                                                                                                                       |
+|                                                                               | -   **readr** for importing csv data,                                                                                                                                                                                                                                                                                                 |
+|                                                                               |                                                                                                                                                                                                                                                                                                                                       |
+|                                                                               | -   **readxl** for importing Excel worksheet,                                                                                                                                                                                                                                                                                         |
+|                                                                               |                                                                                                                                                                                                                                                                                                                                       |
+|                                                                               | -   **tidyr** for manipulating data,                                                                                                                                                                                                                                                                                                  |
+|                                                                               |                                                                                                                                                                                                                                                                                                                                       |
+|                                                                               | -   **dplyr** for transforming data, and                                                                                                                                                                                                                                                                                              |
+|                                                                               |                                                                                                                                                                                                                                                                                                                                       |
+|                                                                               | -   **ggplot2** for visualising data                                                                                                                                                                                                                                                                                                  |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [**sf**](https://r-spatial.github.io/sf/index.html)                           | package provides functions to manage, processing, and manipulate **Simple Features**, a formal geospatial data standard that specifies a storage and access model of spatial geometries such as points, lines, and polygons.                                                                                                          |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [**tmap**](https://cran.r-project.org/web/packages/tmap/index.html)           | which provides functions for plotting cartographic quality static point patterns maps or interactive maps by using [leaflet](https://leafletjs.com/) API.                                                                                                                                                                             |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [**spatstat**](https://spatstat.org/)                                         | has functions useful for Point Pattern Analysis                                                                                                                                                                                                                                                                                       |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [**raster**](https://cran.r-project.org/web/packages/raster/)                 | reads, writes, manipulates, analyses and model of gridded spatial data (i.e. raster)                                                                                                                                                                                                                                                  |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| [**spNetwork**](https://cran.r-project.org/web/packages/spNetwork/index.html) | which provides functions to perform Spatial Point Patterns Analysis such as kernel density estimation (KDE) and K-function on network. It also can be used to build spatial matrices (‘listw’ objects like in ‘spdep’ package) to conduct any kind of traditional spatial analysis with spatial weights based on reticular distances. |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| RColorBrewer                                                                  |                                                                                                                                                                                                                                                                                                                                       |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Viridis                                                                       |                                                                                                                                                                                                                                                                                                                                       |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| lubridate                                                                     |                                                                                                                                                                                                                                                                                                                                       |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| dplyr                                                                         |                                                                                                                                                                                                                                                                                                                                       |
++-------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+In this Take-Home Exercise, I'm using the above packages (covered in class), and have added some for further analysis :
+
+-   smoothr:
+
+-   RColorBrewer
+
+-   gifski
+
+The code chunk below installs and launches the R packages,
+
+```{r}
+pacman::p_load(tidyverse, sf, sp, tmap, spatstat, raster, spNetwork, RColorBrewer, viridis,lubridate, dplyr)
+```
+
+## 2.2 Datasets Used
+
+In response to the [background context](https://is415-ay2024-25t1.netlify.app/th_ex1) of the armed conflict happening in Myanmar, the exercise aims to discover the spatial and spatio-temporal distribution of armed conflict in Myanmar.
+
+Upon further research, I've managed to come across an interesting resource which maps out the [Warscapes in Myanmar](https://myanmar.iiss.org/). It illustrates the variations in the type of conflict inflicted in different zones of the country
+
+### Aspatial Data
+
+-   `MYNMAR.CSV` dataset derived from [Armed Conflict Location & Event Data Project (ACLED)](https://acleddata.com/), a non-profit organization collecting, analyzing and mapping data on political violence and protest events around the world. (Limited to Jan 2021 - June 2024)
+
+-   MIMU Peacebuilding Countrywide Dataset
+
+-   MIMU Protection Countrywide Dataset
+
+### Geospatial
+
+The following datasets were obtained from: <https://data.humdata.org/organization/mimu>
+
+-   Myanmar Country Boundaries MIMU
+
+-   Myanmar District Boundaries MIMU
+
+-   Myanmar Township Boundaries MIMU
+
+-   Points of Interest from **OpenStreetMap,** depicting different categories of features mapped by the OSM community. It depicts various categories such as : public services and infrastructure, emergency and safety locations, amenities and
+
+This additional dataset from OpenStreetMap is crucial for analyzing armed conflict in Myanmar as it provides detailed geographic information on key locations such as public services, infrastructure, and emergency and safety sites. Understanding the distribution of these points of interest helps in assessing the impact of conflict on civilian infrastructure, access to essential services, and the safety of affected populations. Furthermore, it may aid in planning humanitarian assistance, evacuation routes, and monitoring areas of strategic importance during the conflict through data insights.
+
+For the purposes of this exercise, we will focus on the State/Region boundaries, seeing as the conflict is generally explored in this manner, represented by the first administrative level (admin1). Myanmar is divided into 7 states and 7 regions (plus the Union Territory of Naypyidaw).
+
+These boundaries are politically and administratively significant. Different **states** (e.g., Kachin, Rakhine, Shan) and **regions** have distinct ethnic compositions and different conflict dynamics, making this level critical for understanding broader conflict patterns.
+
+# 3.0 Geospatial Data Wrangling
+
+## 3.1 Importing Spatial Data
+
+### 1. Myanmar CSV
+
+Using read_csv to import the data in the `MYANMAR.CSV` file:
+
+```{r}
+acled_data <- read_csv("data/aspatial/2021-01-01-2024-06-30-Myanmar.csv") 
+```
+
+Check and transform the CRS of the acled_data
+
+```{r}
+acled_sf <- st_as_sf(acled_data, coords = c("longitude", "latitude"), crs = 4326) %>% 
+  st_transform(acled_sf, crs=32647)
+st_crs(acled_sf)
+```
+
+### 2. Country, State, Region, District & Township Boundaries
+
+Using the st_read function, we will import data from the State & Region Sub-boundary dataset to visualize Myanmar's landscape:
+
+```{r}
+myanmar_state_sf <-  st_read(dsn="data/geospatial/stateRegion", layer 
+="mmr_polbnda_adm1_250k_mimu_1") %>% 
+  st_transform(myanmar_sf, crs=32647)
+```
+
+From here on out, we will denote points-of-interest as POI.
+
+I will load the corresponding shapefile:
+
+```{r}
+poi_sf <- st_read( dsn="data/geospatial/pointsOfInterest", layer="hotosm_mmr_points_of_interest_points_shp") 
+st_crs(poi_sf) <- 4326
+poi_sf <- st_transform(poi_sf, crs=32647)
+```
+
+After importing the dataset, we will plot to see the boundaries of the State & Regions of Myanmar. The **`plot()`** function is used to plot the geometry of the **`sf`** object. The **`st_geometry()`** function is used to extract the geometry of the **`mpsz_sf`** object.
+
+```{r}
+par(mar = c(0,0,0,0))
+plot(st_geometry(myanmar_state_sf))
+```
+
+## 3.2 Data Preparation
+
+Before a thematic map can be prepared, we have to prepare a data table which includes the variables event types, focused on : Battles, Explosion/Remote violence, Strategic developments, and Violence against civilians.
+
+```{r}
+str(acled_sf)
+```
+
+```{r}
+ggplot() + 
+  geom_sf(data = myanmar_state_sf, color="black") + 
+  geom_sf(data = acled_sf, aes(color = event_type), size = 0.1, alpha = 0.5) + 
+  scale_color_viridis_d(option="D")
+  labs(title = "Types of Violence in Armed Conflict in Myanmar (2021 - 2024)",
+       x = "Longtitude", 
+       y = "Latitude", 
+       color = "Event Type") + 
+  theme_minimal()
+```
+
+We'll now process the data to see the corresponding fatalities with the different event types mentioned above, **Battles, Explosions/Remote violence, Strategic developments and Violence against civilians**:
+
+-   Since we are interested in deriving the quarterly KDE layers, we will convert the event_date column (currently in \[chr\] format), into a Date object that can be used for further analysis.
+
+```{r}
+acled_sf <- acled_sf %>% 
+  mutate(event_date = as.Date(event_date, format = "%d %B %Y")) %>% 
+  mutate(quarter = paste0("Q", quarter(event_date), " ", year(event_date)))
+
+acled_location <- acled_sf %>% 
+  dplyr::select(admin1, geometry)
+
+acled_sf_quartered <- acled_sf %>% 
+  group_by(geometry, quarter, disorder_type, event_type) %>% 
+  arrange(timestamp) %>% 
+  summarize(`FATALITIES` = sum(fatalities, na.rm=TRUE)) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from =event_type, values_from = FATALITIES) %>% 
+  mutate(battle_casualty = ifelse(!is.na(Battles), Battles, 0),
+           explosion_casualty = ifelse(!is.na(`Explosions/Remote violence`), `Explosions/Remote violence`, 0),
+           strategic_developments_casualty = ifelse(!is.na(`Strategic developments`), `Strategic developments`, 0),
+           civilian_violence_casualty = ifelse(!is.na(`Violence against civilians`), `Violence against civilians`, 0))
+```
+
+## 3.3 Converting sf Object to sp Object
+
+```{r}
+acled_sp <- as(acled_sf_quartered, "Spatial")
+myanmar_state_sp <- as(myanmar_state_sf, "Spatial")
+```
+
+```{r}
+# Count distinct geometries (unique coordinates)
+unique_coordinates <- acled_sf_quartered %>%
+  summarise(unique_count = n_distinct(geometry))
+
+# Count distinct event IDs
+unique_event_id_count <- acled_sf %>%
+  summarize(unique_geom = n_distinct(event_id_cnty))
+
+# Print the results
+print(unique_coordinates)  # View the count of unique geometries
+print(unique_event_id_count)  # View the count of unique event IDs
+```
+
+## 3.4 Converting sp Object to spatstat's ppp Format
+
+```{r}
+acled_ppp <- as.ppp(st_coordinates(acled_sf_quartered), st_bbox(acled_sf_quartered))
+```
+
+**Warning: (Regarding duplicates)** In spatial point patterns analysis an issue of significant is the presence of duplicates. The statistical methodology used for spatial point patterns processes is based largely on the assumption that process are *simple*, that is, that the points cannot be coincident.
+
+# 4.0 Handling duplicated points
+
+We check for duplication in the ppp object using the code chunk below. Before processing, we need to account for the fact that we have divided the data into quarters, which would result in the event_types at the same location being treated as separate points, but spatstat recognizing them as duplicates as they share the exact same coordinates.
+
+```{r}
+any(duplicated(acled_ppp))
+```
+
+To count the number of co-incidence point, we will use the multiplicity() function:
+
+```{r}
+sum(multiplicity(acled_ppp) > 1)
+```
+
+Why are there so many duplicates out of 42,608 rows?
+
+1.  **Multiple Events Occurring at the Same Location**
+2.  **Spatial Granularity**
+3.  **Time Dimension is Not Considered in Duplicates**:
+
+```{r}
+tmap_mode('view')
+
+tm_shape(acled_sf_quartered) + 
+  tm_dots(alpha = 0.7, size = 0.01)
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+## 4.1 Spotting Duplicate points from the map shown
+
+To address the duplicate points, which largely arises due to the temporal aspect of the different violence types happening throughout the years, we will use Jittering (adding a small perturbation to the duplicate points so that they do not occupy the exact same space)
+
+The code chunk below implements the jittering approach.
+
+```{r}
+acled_ppp_jitter <- rjitter(acled_ppp, 
+                            retry=TRUE, 
+                            nsim=1, 
+                            drop = TRUE)
+```
+
+Check for duplicated points in the data:
+
+```{r}
+any(duplicated(acled_ppp_jitter))
+```
+
+# 5.0 
+
+# 6.0
+
+# 7.0

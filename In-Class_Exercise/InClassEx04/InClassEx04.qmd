@@ -1,0 +1,82 @@
+---
+title: "In-class Exercise 04 "
+author: "Jezelei Manangan"
+date: "September 9, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
+---
+
+# 1.0 Installing Packages
+
+```{r}
+pacman::p_load(arrow,lubridate,tidyverse,tmap,sf)
+```
+
+```{r}
+#| eval: false
+install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+```
+
+```{r}
+acled_sf<- read_csv("data/aspatial/ACLED_Myanmar.csv") %>% 
+  #convert into sf
+  st_as_sf(coords = c("longitude", "latitude"),
+           crs=4326) %>% 
+  st_transform(crs = 32647) %>% 
+  mutate(event_date = dmy(event_date))
+```
+
+Look at the date-field specifically, without conversion, the event_date is converted into character instead of retaining DD-MMM-YYYY format. To fix this, add the mutate function and transform into sf
+
+# 2.0 Importing Datasets to R Environment
+
+In this exercise, we will use the following datasets:
+
+## 2.1 Importing Geospatial Data
+
+In this section, [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package will be used to import the three geospatial data sets mentioned in previous section into R environment./r
+
+```{r}
+childcare_sf <- st_read("data/aspatial/child-care-services-geojson.geojson")
+```
+
+```{r}
+mpsz_sf <- st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
+```
+
+# 3.0 GeoSpatial Data Wrangling
+
+## 3.1 Assigning Standard CRS
+
+```{r}
+childcare_sf <- st_transform(childcare_sf, crs = 3414)
+mpsz_sf <- st_transform(mpsz_sf, crs = 3414)
+```
+
+```{r}
+sg_sf <- mpsz_sf %>% 
+  st_union()
+```
+
+```{r}
+plot(sg_sf)
+```
+
+```{r}
+tmap_mode("plot")
+acled_sf %>% 
+  filter(year == 2023 | event_type == "Political Violence") %>% 
+  tm_shape() + 
+  tm_dots() 
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+# 4.0 
+
+# 5.0
