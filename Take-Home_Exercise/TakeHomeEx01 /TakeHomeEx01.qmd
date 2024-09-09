@@ -109,7 +109,7 @@ The following datasets were obtained from: <https://data.humdata.org/organizatio
 
 This additional dataset from OpenStreetMap is crucial for analyzing armed conflict in Myanmar as it provides detailed geographic information on key locations such as public services, infrastructure, and emergency and safety sites. Understanding the distribution of these points of interest helps in assessing the impact of conflict on civilian infrastructure, access to essential services, and the safety of affected populations. Furthermore, it may aid in planning humanitarian assistance, evacuation routes, and monitoring areas of strategic importance during the conflict through data insights.
 
-For the purposes of this exercise, we will focus on the State/Region boundaries, seeing as the conflict is generally explored in this manner, represented by the first administrative level (admin1). Myanmar is divided into 7 states and 7 regions (plus the Union Territory of Naypyidaw).
+For the purposes of this exercise, we will focus on the State/Region boundaries, seeing as the conflict is generally explored in this manner (as inferred from the given references in the Take Home Exercise Overview). This is represented by the first administrative level (admin1). Myanmar is divided into 7 states and 7 regions (plus the Union Territory of Naypyidaw).
 
 These boundaries are politically and administratively significant. Different **states** (e.g., Kachin, Rakhine, Shan) and **regions** have distinct ethnic compositions and different conflict dynamics, making this level critical for understanding broader conflict patterns.
 
@@ -130,6 +130,9 @@ Check and transform the CRS of the acled_data
 ```{r}
 acled_sf <- st_as_sf(acled_data, coords = c("longitude", "latitude"), crs = 4326) %>% 
   st_transform(acled_sf, crs=32647)
+```
+
+```{r}
 st_crs(acled_sf)
 ```
 
@@ -283,7 +286,15 @@ Check for duplicated points in the data:
 any(duplicated(acled_ppp_jitter))
 ```
 
-# 5.0 
+# 5.0 Creating *owin* object
+
+The code chunk below is used to covert myanmarSpatialPolygon object into owin object of **spatstat:**
+
+```{r}
+myanmar_state_owin <- as.owin(myanmar_state_sf)
+```
+
+The output object can be displayed by using the plot function
 
 # 6.0
 

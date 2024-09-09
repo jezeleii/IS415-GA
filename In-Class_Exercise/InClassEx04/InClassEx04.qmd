@@ -11,72 +11,138 @@ execute:
 
 # 1.0 Installing Packages
 
-```{r}
-pacman::p_load(arrow,lubridate,tidyverse,tmap,sf)
-```
+For the purposes of this study, six R packages will be used:
+
+They are:
+
+1.  sf
+2.  raster
+3.  spatstat
+4.  sparr
+5.  tmap
+6.  tidyverse
+7.  lubridate
 
 ```{r}
-#| eval: false
-install.packages("maptools", repos = "https://packagemanager.posit.co/cran/2023-10-13")
+pacman::p_load(sf,raster,spatstat, sparr,tmap,tidyverse,readr)
 ```
 
-```{r}
-acled_sf<- read_csv("data/aspatial/ACLED_Myanmar.csv") %>% 
-  #convert into sf
-  st_as_sf(coords = c("longitude", "latitude"),
-           crs=4326) %>% 
-  st_transform(crs = 32647) %>% 
-  mutate(event_date = dmy(event_date))
-```
-
-Look at the date-field specifically, without conversion, the event_date is converted into character instead of retaining DD-MMM-YYYY format. To fix this, add the mutate function and transform into sf
-
-# 2.0 Importing Datasets to R Environment
+# 2.0 Importing and Preparing Study Area
 
 In this exercise, we will use the following datasets:
 
-## 2.1 Importing Geospatial Data
+-   forestfires, a csv file provides locations of forest fire detected from the Moderate Resolution Imaging Spectroradiometer (MODIS) sensor data. The data are downloaded from [Fire Information for Resource Management System](https://firms.modaps.eosdis.nasa.gov/download/). For the purpose of this exercise, only forest fires within Kepulauan Bangka Belitung will be used.
 
-In this section, [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package will be used to import the three geospatial data sets mentioned in previous section into R environment./r
+-   Kepulauan_Bangka_Belitung, an ESRI shapefile showing the sub-district (i.e. [kelurahan](https://en.wikipedia.org/wiki/Villages_of_Indonesia)) boundary of Kepulauan Bangka Belitung. The data set was downloaded from [Indonesia Geospatial](https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html) portal. The original data covers the whole Indonesia. For the purpose of this exercise, only sub-districts within Kepulauan Bangka Belitung are extracted.
 
-```{r}
-childcare_sf <- st_read("data/aspatial/child-care-services-geojson.geojson")
-```
+## 2.1 Importing study area
 
-```{r}
-mpsz_sf <- st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
-```
+In this section, [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package will be used to import the two geospatial data sets mentioned in previous section into R environment.
 
-# 3.0 GeoSpatial Data Wrangling
-
-## 3.1 Assigning Standard CRS
+**Kepulauan_Bangka_Belitung**
 
 ```{r}
-childcare_sf <- st_transform(childcare_sf, crs = 3414)
-mpsz_sf <- st_transform(mpsz_sf, crs = 3414)
+kbb <- st_read(dsn = "data/rawdata/", layer = "Kepulauan_Bangka_Belitung") 
 ```
 
-```{r}
-sg_sf <- mpsz_sf %>% 
-  st_union()
-```
+Looking further into the dataset, we notice that the coordinates have Polygon Z Feature.
+
+-   Before proceeding, we need to dissolve the boundaries, and check for multi-polygon features. In this case, Polygon Z is not needed and may interfere with further analysis
+
+    -   Group Z boundaries up
+
+    -   Remove the Z value
+
+    -   Transform the projection
 
 ```{r}
-plot(sg_sf)
+kbb_sf <- st_read(dsn = "data/rawdata/", layer = "Kepulauan_Bangka_Belitung") %>% 
+  st_union() %>% 
+  st_zm(drop = TRUE, what="ZM") %>% 
+  st_transform(crs = 32748)
 ```
 
+## 2.2 Convergint to owin object
+
+Next, `as.owin()` is used to convert *kbb* into an owin object.
+
 ```{r}
-tmap_mode("plot")
-acled_sf %>% 
-  filter(year == 2023 | event_type == "Political Violence") %>% 
-  tm_shape() + 
-  tm_dots() 
+kbb_owin <- as.owin(kbb_sf)
+kbb_owin
 ```
+
+Next, `class()` is used to confim if the output is indeed an owin object
+
+```{r}
+class(kbb_owin)
+```
+
+# 3.0 Importing and Preparing Forest Fire Data 
+
+Next, we will import the forest fire data set into the R environment
+
+**forestfire.csv**
+
+```{r}
+fire_sf <- read_csv("data/rawdata/forestfires.csv") %>% 
+  st_as_sf(coords = c("longitude", "latitude"),
+           crs = 4326 ) %>% 
+  st_transform(csr = 32748)
+```
+
+Because **ppp** object only accepts numerical aor character as mark. The code chunk below is used to convert data type of acq_date to numeric.
+
+```{r}
+fire_sf <- fire_sf %>% 
+  mutate(DayofYear = yday(acq_date)) %>% 
+  mutate(Month_num = month(acq_date)) %>% 
+  mutate(Month_fac = month(acq_date, 
+         label = TRUE, 
+         abbr = FALSE))
+```
+
+# 4.0 Visualizing the Fire Points 
+
+## 4.1 Overall Plot 
 
 ```{r}
 tmap_mode('plot')
+tm_shape(kbb_sf) + 
+  tm_polygons() + 
+  tm_shape(fire_sf) + 
+  tm_bubbles(alpha = 0.5, size = 0.05) + 
+  tm_layout(main.title = "Forest Fire Distribution in Kepulauan & Bangka Belitung", 
+            ) + 
+tm_grid(alpha = 0.2)
 ```
 
-# 4.0 
+## 4.2 Visualizing Geographic Distribution of Forest Fires by Month 
 
-# 5.0
+```{r}
+tmap_mode('plot')
+tm_shape(kbb_sf) + 
+  tm_polygons() + 
+  tm_shape(fire_sf) + 
+  tm_dots(alpha = 0.5, size = 0.1) + 
+  tm_layout(main.title = "Forest Fire Distribution by Month Factor in Kepulauan & Bangka Belitung", 
+            ) + 
+  tm_facets(by="Month_fac", 
+            free.coords=FALSE,
+            drop.units=TRUE)
+```
+
+# 5.0 Computing STKDE By Month 
+
+We will compute STKDE by `spattemp.density()`
+
+```{r}
+
+```
+
+# 6.0  Computing STKDE By Day of Year
+
+```{r}
+
+```
+
+# 7.0 Computing STKDE By Month 
