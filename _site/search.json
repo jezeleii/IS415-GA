@@ -544,5 +544,75 @@
     "title": "Chapter 4: 1st Order Spatial Point Patterns Analysis Methods",
     "section": "12.2 Tampines Planning Area",
     "text": "12.2 Tampines Planning Area\n\n12.2.1 Computing L-function Estimation\n\nL_TM &lt;- Lest(childcare_tm_ppp, correction=\"Ripley\")\nplot(L_TM, .-r~r, ylab= \"L(d)-r\", xlab = \"d(m)\", xlim=c(0,1000))\n\n\n\n\n\n\n\n\n\n\n12.2.2 Performing Complete Spatial Randomness Test\nTo confirm the observed spatial patterns above, a hypothesis test will be conducted. The hypothesis and test are as follows:\nHo = The distribution of childcare services at Tampines are randomly distributed.\nH1= The distribution of childcare services at Tampines are not randomly distributed.\nThe null hypothesis will be rejected if p-value is smaller than alpha value of 0.001.\nThe code chunk below will be used to perform the hypothesis testing.\n\nL_TM.csr &lt;- envelope(childcare_tm_ppp, Lest, nsim=99, rank=1, glocal=TRUE)\n\nGenerating 99 simulations of CSR  ...\n1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,\n21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,\n41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,\n61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,\n81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, \n99.\n\nDone.\n\n\n\nplot(L_TM.csr, . - r ~ r, xlab=\"d\", ylab=\"L(d)-r\", xlim=c(0,500))"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html",
+    "title": "In-class Exercise 04",
+    "section": "",
+    "text": "For the purposes of this study, six R packages will be used:\nThey are:\n\nsf\nraster\nspatstat\nsparr\ntmap\ntidyverse\nlubridate\n\n\npacman::p_load(sf,raster,spatstat,sparr,tmap,tidyverse,readr, dplyr)"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#importing-study-area",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#importing-study-area",
+    "title": "In-class Exercise 04",
+    "section": "2.1 Importing study area",
+    "text": "2.1 Importing study area\nIn this section, st_read() of sf package will be used to import the two geospatial data sets mentioned in previous section into R environment.\nKepulauan_Bangka_Belitung\n\nkbb &lt;- st_read(dsn = \"data/rawdata/\", layer = \"Kepulauan_Bangka_Belitung\") \n\nReading layer `Kepulauan_Bangka_Belitung' from data source \n  `/Users/jezelei/jezeleii/IS415-GA/In-Class_Exercise/InClassEx04/data/rawdata' \n  using driver `ESRI Shapefile'\nSimple feature collection with 298 features and 27 fields\nGeometry type: POLYGON\nDimension:     XYZ\nBounding box:  xmin: 105.1085 ymin: -3.116593 xmax: 106.8488 ymax: -1.501603\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\n\nLooking further into the dataset, we notice that the coordinates have Polygon Z Feature.\n\nBefore proceeding, we need to dissolve the boundaries, and check for multi-polygon features. In this case, Polygon Z is not needed and may interfere with further analysis\n\nGroup Z boundaries up\nRemove the Z value\nTransform the projection\n\n\n\nkbb_sf &lt;- st_read(dsn = \"data/rawdata/\", layer = \"Kepulauan_Bangka_Belitung\") %&gt;% \n  st_union() %&gt;% \n  st_zm(drop = TRUE, what=\"ZM\") %&gt;% \n  st_transform(crs=32748)\n\nReading layer `Kepulauan_Bangka_Belitung' from data source \n  `/Users/jezelei/jezeleii/IS415-GA/In-Class_Exercise/InClassEx04/data/rawdata' \n  using driver `ESRI Shapefile'\nSimple feature collection with 298 features and 27 fields\nGeometry type: POLYGON\nDimension:     XYZ\nBounding box:  xmin: 105.1085 ymin: -3.116593 xmax: 106.8488 ymax: -1.501603\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\n\nst_as_s2(): dropping Z and/or M coordinate"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#convergint-to-owin-object",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#convergint-to-owin-object",
+    "title": "In-class Exercise 04",
+    "section": "2.2 Convergint to owin object",
+    "text": "2.2 Convergint to owin object\nNext, as.owin() is used to convert kbb into an owin object.\n\nkbb_owin &lt;- as.owin(kbb_sf)\nkbb_owin\n\nwindow: polygonal boundary\nenclosing rectangle: [512066.8, 705559.4] x [9655398, 9834006] units\n\n\nNext, class() is used to confim if the output is indeed an owin object\n\nclass(kbb_owin)\n\n[1] \"owin\""
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#overall-plot",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#overall-plot",
+    "title": "In-class Exercise 04",
+    "section": "4.1 Overall Plot",
+    "text": "4.1 Overall Plot\n\ntmap_mode('plot')\n\ntmap mode set to plotting\n\ntm_shape(kbb_sf) + \n  tm_polygons() + \n  tm_shape(fire_sf) + \n  tm_bubbles(alpha = 0.5, size = 0.05) + \n  tm_layout(main.title = \"Forest Fire Distribution in Kepulauan & Bangka Belitung\", \n            ) + \ntm_grid(alpha = 0.2)"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#visualizing-geographic-distribution-of-forest-fires-by-month",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#visualizing-geographic-distribution-of-forest-fires-by-month",
+    "title": "In-class Exercise 04",
+    "section": "4.2 Visualizing Geographic Distribution of Forest Fires by Month",
+    "text": "4.2 Visualizing Geographic Distribution of Forest Fires by Month\n\ntmap_mode('plot')\n\ntmap mode set to plotting\n\ntm_shape(kbb_sf) + \n  tm_polygons() + \n  tm_shape(fire_sf) + \n  tm_dots(alpha = 0.5, size = 0.1) + \n  tm_layout(main.title = \"Forest Fire Distribution by Month Factor in Kepulauan & Bangka Belitung\", \n            ) + \n  tm_facets(by=\"Month_fac\", \n            free.coords=FALSE,\n            drop.units=TRUE)"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#extracting-forest-fires-by-month",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#extracting-forest-fires-by-month",
+    "title": "In-class Exercise 04",
+    "section": "5.1 Extracting Forest fires by month",
+    "text": "5.1 Extracting Forest fires by month\nThe code chunk below is used to remofe the unwanted fields from fire_sf data.frame. This is because as.ppp() only need the mark field and geometry field from the input sf data.frame\n\nfire_month &lt;- fire_sf %&gt;% \n  select(Month_num)\n\nclass(fire_month)\n\n[1] \"sf\"         \"tbl_df\"     \"tbl\"        \"data.frame\""
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#creating-ppp",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#creating-ppp",
+    "title": "In-class Exercise 04",
+    "section": "5.2 Creating ppp",
+    "text": "5.2 Creating ppp\nThe code chunk below is used to derive a ppp obect called fire_month from fire_month sf data.frame\n\nfire_month_ppp &lt;- as.ppp(st_coordinates(fire_sf), W= kbb_owin)\nmarks(fire_month_ppp) &lt;- fire_sf$DayofYear\n\n\nst_crs(kbb_sf)\n\nCoordinate Reference System:\n  User input: EPSG:32748 \n  wkt:\nPROJCRS[\"WGS 84 / UTM zone 48S\",\n    BASEGEOGCRS[\"WGS 84\",\n        ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n            MEMBER[\"World Geodetic System 1984 (Transit)\"],\n            MEMBER[\"World Geodetic System 1984 (G730)\"],\n            MEMBER[\"World Geodetic System 1984 (G873)\"],\n            MEMBER[\"World Geodetic System 1984 (G1150)\"],\n            MEMBER[\"World Geodetic System 1984 (G1674)\"],\n            MEMBER[\"World Geodetic System 1984 (G1762)\"],\n            MEMBER[\"World Geodetic System 1984 (G2139)\"],\n            ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n                LENGTHUNIT[\"metre\",1]],\n            ENSEMBLEACCURACY[2.0]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        ID[\"EPSG\",4326]],\n    CONVERSION[\"UTM zone 48S\",\n        METHOD[\"Transverse Mercator\",\n            ID[\"EPSG\",9807]],\n        PARAMETER[\"Latitude of natural origin\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8801]],\n        PARAMETER[\"Longitude of natural origin\",105,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8802]],\n        PARAMETER[\"Scale factor at natural origin\",0.9996,\n            SCALEUNIT[\"unity\",1],\n            ID[\"EPSG\",8805]],\n        PARAMETER[\"False easting\",500000,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8806]],\n        PARAMETER[\"False northing\",10000000,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8807]]],\n    CS[Cartesian,2],\n        AXIS[\"(E)\",east,\n            ORDER[1],\n            LENGTHUNIT[\"metre\",1]],\n        AXIS[\"(N)\",north,\n            ORDER[2],\n            LENGTHUNIT[\"metre\",1]],\n    USAGE[\n        SCOPE[\"Engineering survey, topographic mapping.\"],\n        AREA[\"Between 102°E and 108°E, southern hemisphere between 80°S and equator, onshore and offshore. Indonesia.\"],\n        BBOX[-80,102,0,108]],\n    ID[\"EPSG\",32748]]\n\nst_crs(fire_sf)\n\nCoordinate Reference System:\n  User input: EPSG:32748 \n  wkt:\nPROJCRS[\"WGS 84 / UTM zone 48S\",\n    BASEGEOGCRS[\"WGS 84\",\n        ENSEMBLE[\"World Geodetic System 1984 ensemble\",\n            MEMBER[\"World Geodetic System 1984 (Transit)\"],\n            MEMBER[\"World Geodetic System 1984 (G730)\"],\n            MEMBER[\"World Geodetic System 1984 (G873)\"],\n            MEMBER[\"World Geodetic System 1984 (G1150)\"],\n            MEMBER[\"World Geodetic System 1984 (G1674)\"],\n            MEMBER[\"World Geodetic System 1984 (G1762)\"],\n            MEMBER[\"World Geodetic System 1984 (G2139)\"],\n            ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n                LENGTHUNIT[\"metre\",1]],\n            ENSEMBLEACCURACY[2.0]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        ID[\"EPSG\",4326]],\n    CONVERSION[\"UTM zone 48S\",\n        METHOD[\"Transverse Mercator\",\n            ID[\"EPSG\",9807]],\n        PARAMETER[\"Latitude of natural origin\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8801]],\n        PARAMETER[\"Longitude of natural origin\",105,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8802]],\n        PARAMETER[\"Scale factor at natural origin\",0.9996,\n            SCALEUNIT[\"unity\",1],\n            ID[\"EPSG\",8805]],\n        PARAMETER[\"False easting\",500000,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8806]],\n        PARAMETER[\"False northing\",10000000,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8807]]],\n    CS[Cartesian,2],\n        AXIS[\"(E)\",east,\n            ORDER[1],\n            LENGTHUNIT[\"metre\",1]],\n        AXIS[\"(N)\",north,\n            ORDER[2],\n            LENGTHUNIT[\"metre\",1]],\n    USAGE[\n        SCOPE[\"Engineering survey, topographic mapping.\"],\n        AREA[\"Between 102°E and 108°E, southern hemisphere between 80°S and equator, onshore and offshore. Indonesia.\"],\n        BBOX[-80,102,0,108]],\n    ID[\"EPSG\",32748]]\n\n\nThe code chunk is used to check the output is in the correct object class:\n\nsummary(fire_month_ppp)\n\nMarked planar point pattern:  741 points\nAverage intensity 6.424519e-08 points per square unit\n\nCoordinates are given to 10 decimal places\n\nmarks are numeric, of type 'double'\nSummary:\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n   10.0   213.0   258.0   245.9   287.0   352.0 \n\nWindow: polygonal boundary\n2 separate polygons (no holes)\n           vertices        area relative.area\npolygon 1     47493 11533600000      1.00e+00\npolygon 2       256      306427      2.66e-05\nenclosing rectangle: [512066.8, 705559.4] x [9655398, 9834006] units\n                     (193500 x 178600 units)\nWindow area = 11533900000 square units\nFraction of frame area: 0.334\n\n\nIn the code chunk below, we check for duplicates.\n\nany(duplicated(fire_month_ppp))\n\n[1] FALSE"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#including-owin-object",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#including-owin-object",
+    "title": "In-class Exercise 04",
+    "section": "5.3 Including Owin object",
+    "text": "5.3 Including Owin object\n\nfire_month_owin &lt;- fire_month_ppp[kbb_owin]\nsummary(fire_month_owin)\n\nMarked planar point pattern:  741 points\nAverage intensity 6.424519e-08 points per square unit\n\nCoordinates are given to 10 decimal places\n\nmarks are numeric, of type 'double'\nSummary:\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n   10.0   213.0   258.0   245.9   287.0   352.0 \n\nWindow: polygonal boundary\n2 separate polygons (no holes)\n           vertices        area relative.area\npolygon 1     47493 11533600000      1.00e+00\npolygon 2       256      306427      2.66e-05\nenclosing rectangle: [512066.8, 705559.4] x [9655398, 9834006] units\n                     (193500 x 178600 units)\nWindow area = 11533900000 square units\nFraction of frame area: 0.334"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#computing-spatio-temporal-kde",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#computing-spatio-temporal-kde",
+    "title": "In-class Exercise 04",
+    "section": "5.4 Computing Spatio-temporal KDE",
+    "text": "5.4 Computing Spatio-temporal KDE\n\nst_kde &lt;- spattemp.density(fire_month_owin)\n\nCalculating trivariate smooth...Done.\nEdge-correcting...Done.\nConditioning on time...Done.\n\nsummary(st_kde)\n\nSpatiotemporal Kernel Density Estimate\n\nBandwidths\n  h = 15102.47 (spatial)\n  lambda = 6.3198 (temporal)\n\nNo. of observations\n  741 \n\nSpatial bound\n  Type: polygonal\n  2D enclosure: [512066.8, 705559.4] x [9655398, 9834006]\n\nTemporal bound\n  [10, 352]\n\nEvaluation\n  128 x 128 x 343 trivariate lattice\n  Density range: [3.959516e-27, 2.751287e-12]"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx04/InClassEx04.html#plotting-the-spatio-temporal-kde-object",
+    "href": "In-Class_Exercise/InClassEx04/InClassEx04.html#plotting-the-spatio-temporal-kde-object",
+    "title": "In-class Exercise 04",
+    "section": "5.5 Plotting the spatio-temporal KDE Object",
+    "text": "5.5 Plotting the spatio-temporal KDE Object\nIn the code chunk below, plot() of R base is used to the KDE for between July 2023 - December 2023.\n\n# Define the months you want to plot (July to December)\ntims &lt;- c(7,8,9,10,11,12)  \n\nfor (i in tims){\n  kde_values &lt;- st_kde$z[[i]]$v\n  \n  image(kde_values,\n        main=paste(\"KDE at month\", i))\n}"
   }
 ]
