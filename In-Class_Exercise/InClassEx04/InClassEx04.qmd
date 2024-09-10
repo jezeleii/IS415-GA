@@ -313,9 +313,5 @@ saveGIF({
          main=paste('KDE at Day',i))
   }
 }, movie.name = "forestFires.gif", interval = 0.5, ani.width=800, ani.height=600)
-
 ```
-
-## Displaying the GIF
-
-![](%60r%20temp_gif%60)
+![](forestFires.gif)
