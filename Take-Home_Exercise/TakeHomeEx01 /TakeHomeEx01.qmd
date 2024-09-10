@@ -294,8 +294,26 @@ The code chunk below is used to covert myanmarSpatialPolygon object into owin ob
 myanmar_state_owin <- as.owin(myanmar_state_sf)
 ```
 
-The output object can be displayed by using the plot function
+```{r}
+class(myanmar_state_owin)
+```
 
-# 6.0
+The output object can be displayed by using plot():
+
+```{r}
+plot(myanmar_state_owin)
+```
+
+```{r}
+summary(myanmar_state_owin)
+```
+
+# 6.0 Combining point events object and owin object
+
+In this last
+
+```{r}
+acled_myn_ppp <- acled_ppp[myanmar_state_owin]
+```
 
 # 7.0
