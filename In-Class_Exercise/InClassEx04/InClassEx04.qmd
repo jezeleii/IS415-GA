@@ -1,5 +1,5 @@
 ---
-title: "In-class Exercise 04 "
+title: "In-class Exercise 04"
 author: "Jezelei Manangan"
 date: "September 9, 2024"
 date-modified: "last-modified"
@@ -314,4 +314,5 @@ saveGIF({
   }
 }, movie.name = "forestFires.gif", interval = 0.5, ani.width=800, ani.height=600)
 ```
+
 ![](forestFires.gif)

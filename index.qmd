@@ -89,3 +89,43 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 </a>
 :::
 :::
+
+<hr/>
+
+::: {style="display:flex; align-items:center;"}
+<div>
+
+<h3>Hands-On \n Exercise 04</h3>
+
+<p>Building Block 4: Spatial Point Pattern Analysis</p>
+
+</div>
+
+::: {style="width: 100%"}
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/In-Class_Exercise/InClassEx04/InClassEx04.html`">`{=html}
+
+![](headerImages/Hands-on_Ex03_Header.png){fig-align="right" width="90%"}
+
+</a>
+:::
+:::
+
+<hr/>
+
+::: {style="display:flex; align-items:center;"}
+<div>
+
+<h3>Hands-On \n Exercise 05</h3>
+
+<p>Building Block 5: Spatial Point Pattern Analysis</p>
+
+</div>
+
+::: {style="width: 100%"}
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05`">`{=html}
+
+![](headerImages/Hands-on_Ex03_Header.png){fig-align="right" width="90%"}
+
+</a>
+:::
+:::

@@ -1,5 +1,6 @@
 ---
 title: "Network Constrained Spatial Point Patterns Analysis"
+subtitle: "Hands-on Exercise 4"
 author: "Jezelei Manangan"
 date: "September 2, 2024"
 date-modified: "last-modified"

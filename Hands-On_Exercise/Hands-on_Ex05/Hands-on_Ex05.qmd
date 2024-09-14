@@ -1,5 +1,6 @@
 ---
-title: "In-class Exercise 04 "
+title: "Spatial Weights & Applications"
+subtitle: "Hands-on Exercise 5"
 author: "Jezelei Manangan"
 date: "September 9, 2024"
 date-modified: "last-modified"
@@ -39,7 +40,7 @@ pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
 
 # 3.0 Getting the Data into R Environment
 
-## 3.1 Import shapefile into R environment 
+## 3.1 Import shapefile into R environment
 
 The code chunk below uses [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package to import Hunan shapefile into R. The imported shapefile will be **simple features** Object of **sf**.
 
@@ -54,7 +55,7 @@ hunan <- st_read(dsn="data/geospatial", layer="Hunan") %>%
 hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv") 
 ```
 
-## 3.3 Performing relational join 
+## 3.3 Performing relational join
 
 The code chunk below will be used to update the attribute table of *hunan*’s SpatialPolygonsDataFrame with the attribute fields of *hunan2012* dataframe. This is performed by using *left_join()* of **dplyr** package.
 
@@ -493,7 +494,7 @@ w_avg_gdppc <- qtm(hunan, "lag_window_avg GDPPC")
 tmap_arrange(lag_gdppc, w_avg_gdppc, asp=1, ncol=2)
 ```
 
-## 9.4 Spatial window sum 
+## 9.4 Spatial window sum
 
 The spatial window sum is the counter part of the window average, but without using row-standardized weights.
 
