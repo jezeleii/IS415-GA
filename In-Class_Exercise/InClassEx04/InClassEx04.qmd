@@ -302,17 +302,23 @@ summary(kde_yday_plus)
 ## 8.2 Plotting the Spatio-temporal KDE object
 
 ```{r}
-tims <- 10:352
+temp_gif <- "forestFires.gif"
 
-temp_gif <- tempfile(fileext = '.gif')
-saveGIF({
-  for(i in tims){
-    plot(kde_yday, i, 
-         override.par=FALSE, 
-         fix.range=TRUE,
-         main=paste('KDE at Day',i))
-  }
-}, movie.name = "forestFires.gif", interval = 0.5, ani.width=800, ani.height=600)
+# Check if the GIF already exists
+if (!file.exists(temp_gif)) {
+  # If the GIF doesn't exist, create and save it
+  saveGIF({
+    for(i in tims){
+      plot(kde_yday, i, 
+           override.par=FALSE, 
+           fix.range=TRUE,
+           main=paste('KDE at Day', i))
+    }
+  }, movie.name = temp_gif, interval = 0.5, ani.width=800, ani.height=600)
+} else {
+  # If the GIF already exists, skip the saving process
+  message("GIF already exists, skipping save.")
+}
 ```
 
 ![](forestFires.gif)

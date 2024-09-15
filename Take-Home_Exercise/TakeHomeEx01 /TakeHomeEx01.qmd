@@ -472,13 +472,10 @@ sigma_diggle
 
 The choice between automatic and adaptive bandwidth depends on the objectives and nature of our analysis.
 
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Automatic Bandwidth                                                                               | Adaptive Bandwidth                                                                                                                                                     |
-+===================================================================================================+========================================================================================================================================================================+
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Offers Consistency across Space: Uniform smoothing across the entire study area.                  | Varying Spatial Densities: Showing significant differences in conflict event densities (urban, rural ares), adaptive bandwidth could give a more nuanced understanding |
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | General Hotspot Detection: To identify overall hotspots or conflict zones without too much detail | Local Hotspot Detection                                                                                                                                                |
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 For the following sections, we will compare the KDE of Armed Conflict Event_Types in Myanmar over the quarters of Jan 2021 - Jun 2024.
 
@@ -1016,7 +1013,7 @@ L_Q1_2021.csr <- envelope(childcare_ck_ppp, Lest, nsim = 99, rank = 1, glocal=TR
 plot(L_Q1_2021.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
 
-# X.0 Additional Analysis 
+# X.0 Additional Analysis
 
 Due to the humanitarian casualties involved in the ongoing armed conflict, something interesting to explore is how some points of interest (particularly hospitals, shelters, police stations) are relevant to the conflict.
 
