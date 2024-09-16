@@ -239,11 +239,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#spatial-weights-applications" id="toc-spatial-weights-applications" class="nav-link" data-scroll-target="#spatial-weights-applications">Spatial Weights &amp; Applications</a></li>
   </ul></li>
-  <li><a href="#installing-packages" id="toc-installing-packages" class="nav-link" data-scroll-target="#installing-packages">2.0 Installing Packages</a></li>
-  <li><a href="#importing-and-preparing-study-area" id="toc-importing-and-preparing-study-area" class="nav-link" data-scroll-target="#importing-and-preparing-study-area">3.0 Importing and Preparing Study Area</a>
+  <li><a href="#objective-overview-1" id="toc-objective-overview-1" class="nav-link" data-scroll-target="#objective-overview-1">1.0 Objective &amp; Overview</a></li>
+  <li><a href="#the-study-area-and-data" id="toc-the-study-area-and-data" class="nav-link" data-scroll-target="#the-study-area-and-data">2.0 The Study Area and Data</a></li>
+  <li><a href="#getting-the-data-into-r-environment" id="toc-getting-the-data-into-r-environment" class="nav-link" data-scroll-target="#getting-the-data-into-r-environment">3.0 Getting the Data into R Environment</a>
   <ul class="collapse">
-  <li><a href="#importing-study-area" id="toc-importing-study-area" class="nav-link" data-scroll-target="#importing-study-area">3.1 Importing study area</a></li>
-  <li><a href="#converging-to-owin-object" id="toc-converging-to-owin-object" class="nav-link" data-scroll-target="#converging-to-owin-object">3.2 Converging to owin object</a></li>
+  <li><a href="#import-shapefile-into-r-environment" id="toc-import-shapefile-into-r-environment" class="nav-link" data-scroll-target="#import-shapefile-into-r-environment">3.1 Import shapefile into R environment</a></li>
+  <li><a href="#import-csv-file-into-r-environment" id="toc-import-csv-file-into-r-environment" class="nav-link" data-scroll-target="#import-csv-file-into-r-environment">3.2 Import csv file into R environment</a></li>
+  <li><a href="#performing-relational-join" id="toc-performing-relational-join" class="nav-link" data-scroll-target="#performing-relational-join">3.3 Performing relational join</a></li>
+  <li><a href="#mapping-the-gdpc" id="toc-mapping-the-gdpc" class="nav-link" data-scroll-target="#mapping-the-gdpc">Mapping the GDPC</a></li>
+  </ul></li>
+  <li><a href="#geographically-weighted-summary-statistics-with-adaptive-bandwidth" id="toc-geographically-weighted-summary-statistics-with-adaptive-bandwidth" class="nav-link" data-scroll-target="#geographically-weighted-summary-statistics-with-adaptive-bandwidth">Geographically Weighted Summary Statistics with adaptive bandwidth</a>
+  <ul class="collapse">
+  <li><a href="#determine-adaptive-bandwidth" id="toc-determine-adaptive-bandwidth" class="nav-link" data-scroll-target="#determine-adaptive-bandwidth">Determine adaptive bandwidth</a></li>
+  <li><a href="#fixed-bandwidth" id="toc-fixed-bandwidth" class="nav-link" data-scroll-target="#fixed-bandwidth">Fixed bandwidth</a>
+  <ul class="collapse">
+  <li><a href="#computing-geographically-summary-statistics" id="toc-computing-geographically-summary-statistics" class="nav-link" data-scroll-target="#computing-geographically-summary-statistics">Computing Geographically Summary statistics</a></li>
+  <li><a href="#preparing-the-output" id="toc-preparing-the-output" class="nav-link" data-scroll-target="#preparing-the-output">Preparing the output</a></li>
+  </ul></li>
+  <li><a href="#visualising-geographically-weighted-summary-statistic" id="toc-visualising-geographically-weighted-summary-statistic" class="nav-link" data-scroll-target="#visualising-geographically-weighted-summary-statistic">Visualising geographically weighted summary statistic</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -297,33 +310,201 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 </section>
 </section>
-<section id="installing-packages" class="level1">
-<h1>2.0 Installing Packages</h1>
-<p>For the purpose of this study, six R packages will be used. They are:</p>
+<section id="objective-overview-1" class="level1">
+<h1>1.0 Objective &amp; Overview</h1>
+<p>By the end to this hands-on exercise, you will be able to:</p>
 <ul>
-<li><p><a href="https://r-spatial.github.io/sf/"><strong>sf</strong></a> provides functions for importing processing and wrangling geospatial data,,</p></li>
-<li><p><a href="https://rspatial.org/raster/"><strong>raster</strong></a> for handling raster data in R,</p></li>
-<li><p><a href="https://cran.r-project.org/web/packages/spatstat/index.html"><strong>spatstat</strong></a> for performing Spatial Point Patterns Analysis such as kcross, Lcross, etc.,</p></li>
-<li><p><a href="https://tilmandavies.github.io/sparr/index.html"><strong>sparr</strong></a> provides functions to estimate fixed and adaptive kernel-smoothed spatial relative risk surfaces via the density-ratio method and perform subsequent inference. Fixed-bandwidth spatiotemporal density and relative risk estimation is also supported</p></li>
-<li><p><a href="https://r-tmap.github.io/tmap/"><strong>tmap</strong></a> provides functions to produce cartographic quality thematic maps, and</p></li>
-<li><p><a href="https://www.tidyverse.org/"><strong>tidyverse</strong></a>, a family of R packages that provide functions to perform common data science tasks including and not limited to data import, data transformation, data wrangling and data visualisation.</p></li>
+<li><p>import geospatial data using appropriate function(s) of <strong>sf</strong> package,</p></li>
+<li><p>import csv file using appropriate function of <strong>readr</strong> package,</p></li>
+<li><p>perform relational join using appropriate join function of <strong>dplyr</strong> package,</p></li>
+<li><p>compute spatial weights using appropriate functions of <strong>spdep</strong> package, and</p></li>
+<li><p>calculate spatially lagged variables using appropriate functions of <strong>spdep</strong> package.</p></li>
+<li><p>GWModel</p></li>
 </ul>
+</section>
+<section id="the-study-area-and-data" class="level1">
+<h1>2.0 The Study Area and Data</h1>
+<p>Two data sets will be used in this hands-on exercise, they are:</p>
+<ul>
+<li><p>Hunan county boundary layer. This is a geospatial data set in ESRI shapefile format.</p></li>
+<li><p>Hunan_2012.csv: This csv file contains selected Hunan’s local development indicators in 2012.</p></li>
+</ul>
+<p>Before we get started, we need to ensure that <strong>spdep</strong>, <strong>sf</strong>, <strong>tmap</strong> and <strong>tidyverse</strong> packages of R are currently installed in your R.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf,raster,spatstat,sparr,tmap,tidyverse,readr, dplyr, animation)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, spdep, tmap, tidyverse, knitr, GWmodel )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="importing-and-preparing-study-area" class="level1">
-<h1>3.0 Importing and Preparing Study Area</h1>
-<p>In this exercise, we will use the following datasets:</p>
-<ul>
-<li><p>forestfires, a csv file provides locations of forest fire detected from the Moderate Resolution Imaging Spectroradiometer (MODIS) sensor data. The data are downloaded from <a href="https://firms.modaps.eosdis.nasa.gov/download/">Fire Information for Resource Management System</a>. For the purpose of this exercise, only forest fires within Kepulauan Bangka Belitung will be used.</p></li>
-<li><p>Kepulauan_Bangka_Belitung, an ESRI shapefile showing the sub-district (i.e.&nbsp;<a href="https://en.wikipedia.org/wiki/Villages_of_Indonesia">kelurahan</a>) boundary of Kepulauan Bangka Belitung. The data set was downloaded from <a href="https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html">Indonesia Geospatial</a> portal. The original data covers the whole Indonesia. For the purpose of this exercise, only sub-districts within Kepulauan Bangka Belitung are extracted.</p></li>
-</ul>
-<section id="importing-study-area" class="level2">
-<h2 class="anchored" data-anchor-id="importing-study-area">3.1 Importing study area</h2>
+<section id="getting-the-data-into-r-environment" class="level1">
+<h1>3.0 Getting the Data into R Environment</h1>
+<section id="import-shapefile-into-r-environment" class="level2">
+<h2 class="anchored" data-anchor-id="import-shapefile-into-r-environment">3.1 Import shapefile into R environment</h2>
+<p>The code chunk below uses <a href="https://r-spatial.github.io/sf/reference/st_read.html"><em>st_read()</em></a> of <strong>sf</strong> package to import Hunan shapefile into R. The imported shapefile will be <strong>simple features</strong> Object of <strong>sf</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn=</span><span class="st">"data/geospatial"</span>, <span class="at">layer=</span><span class="st">"Hunan"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs=</span><span class="dv">4490</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="converging-to-owin-object" class="level2">
-<h2 class="anchored" data-anchor-id="converging-to-owin-object">3.2 Converging to owin object</h2>
+<section id="import-csv-file-into-r-environment" class="level2">
+<h2 class="anchored" data-anchor-id="import-csv-file-into-r-environment">3.2 Import csv file into R environment</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>hunan2012 <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/Hunan_2012.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="performing-relational-join" class="level2">
+<h2 class="anchored" data-anchor-id="performing-relational-join">3.3 Performing relational join</h2>
+<p>The code chunk below will be used to update the attribute table of <em>hunan</em>’s SpatialPolygonsDataFrame with the attribute fields of <em>hunan2012</em> dataframe. This is performed by using <em>left_join()</em> of <strong>dplyr</strong> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> <span class="fu">left_join</span>(hunan, hunan2012)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(hunan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>hunan <span class="ot">&lt;-</span> hunan <span class="sc">%&gt;%</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="dv">7</span>, <span class="dv">15</span>, <span class="dv">16</span>, <span class="dv">31</span>, <span class="dv">32</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Take note of the following when doing relational join</p>
+<ul>
+<li><p>Upper case, Lower case lettering</p></li>
+<li><p>Common columns for joining</p></li>
+<li><p><strong>Storing the dataset in rds</strong></p></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(hunan, <span class="st">"data/rds/hunan.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To use this data for subsequent analysis:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>hunan_sf <span class="ot">&lt;-</span> <span class="fu">read_rds</span>(<span class="st">"data/rds/hunan.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Useful rmarkdown:</p>
+<ul>
+<li><p>#| eval: false</p></li>
+<li><p>#| echo:false - does not show on the quarto document rendering</p></li>
+</ul>
+</section>
+<section id="mapping-the-gdpc" class="level2">
+<h2 class="anchored" data-anchor-id="mapping-the-gdpc">Mapping the GDPC</h2>
+<p>Converting to SpatialPolygonDataFrame</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>hunan_sp <span class="ot">&lt;-</span> hunan_sf <span class="sc">%&gt;%</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_Spatial</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="geographically-weighted-summary-statistics-with-adaptive-bandwidth" class="level1">
+<h1>Geographically Weighted Summary Statistics with adaptive bandwidth</h1>
+<section id="determine-adaptive-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="determine-adaptive-bandwidth">Determine adaptive bandwidth</h2>
+<section id="aic" class="level4">
+<h4 class="anchored" data-anchor-id="aic">AIC</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>bw_AIC <span class="ot">&lt;-</span> <span class="fu">bw.gwr</span>(GDPPC <span class="sc">~</span> <span class="dv">1</span>,  <span class="co">#same value as the GDP Per Capita (Function = 1)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data=</span>hunan_sp, </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">approach=</span><span class="st">"AIC"</span>, </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">adaptive=</span><span class="cn">TRUE</span>, </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">kernel=</span><span class="st">"bisquare"</span>, </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">longlat =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Adaptive bandwidth (number of nearest neighbours): 62 AICc value: 1923.156 
+Adaptive bandwidth (number of nearest neighbours): 46 AICc value: 1920.469 
+Adaptive bandwidth (number of nearest neighbours): 36 AICc value: 1917.324 
+Adaptive bandwidth (number of nearest neighbours): 29 AICc value: 1916.661 
+Adaptive bandwidth (number of nearest neighbours): 26 AICc value: 1914.897 
+Adaptive bandwidth (number of nearest neighbours): 22 AICc value: 1914.045 
+Adaptive bandwidth (number of nearest neighbours): 22 AICc value: 1914.045 </code></pre>
+</div>
+</div>
+<ul>
+<li><p>Cross Validation</p></li>
+<li><p>AIC</p></li>
+</ul>
+<p>Unusual cases here:</p>
+<ul>
+<li><p>LatLong = T -&gt; will transform data into projected coordinate system (in kilometer) vs</p></li>
+<li><p>LongLat = T (Great Circle Transformation)</p></li>
+</ul>
+</section>
+<section id="cross-validation" class="level4">
+<h4 class="anchored" data-anchor-id="cross-validation">Cross Validation</h4>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>bw_CV <span class="ot">&lt;-</span> <span class="fu">bw.gwr</span>(GDPPC <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data=</span>hunan_sp, </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">approach=</span><span class="st">"CV"</span>, </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">adaptive=</span><span class="cn">TRUE</span>, </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">kernel=</span><span class="st">"bisquare"</span>, </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">longlat =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Adaptive bandwidth: 62 CV score: 15515442343 
+Adaptive bandwidth: 46 CV score: 14937956887 
+Adaptive bandwidth: 36 CV score: 14408561608 
+Adaptive bandwidth: 29 CV score: 14198527496 
+Adaptive bandwidth: 26 CV score: 13898800611 
+Adaptive bandwidth: 22 CV score: 13662299974 
+Adaptive bandwidth: 22 CV score: 13662299974 </code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="fixed-bandwidth" class="level2">
+<h2 class="anchored" data-anchor-id="fixed-bandwidth">Fixed bandwidth</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>bw_CV <span class="ot">&lt;-</span> <span class="fu">bw.gwr</span>(GDPPC <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data=</span>hunan_sp, </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">approach=</span><span class="st">"CV"</span>, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">adaptive=</span><span class="cn">FALSE</span>, </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">kernel=</span><span class="st">"bisquare"</span>, </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">longlat =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You can use fixed bandwidth (change adaptive=TRUE to adaptive=FALSE)</p>
+<section id="computing-geographically-summary-statistics" class="level3">
+<h3 class="anchored" data-anchor-id="computing-geographically-summary-statistics">Computing Geographically Summary statistics</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>gwstat <span class="ot">&lt;-</span> <span class="fu">gwss</span>(<span class="at">data =</span> hunan_sp, </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">vars=</span><span class="st">"GDPPC"</span>, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">bw =</span> bw_AIC, </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">kernel=</span><span class="st">"bisquare"</span>, </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">adaptive=</span><span class="cn">TRUE</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">longlat =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>View(gwstat[[“SDF”]]@data)</p>
+</section>
+<section id="preparing-the-output" class="level3">
+<h3 class="anchored" data-anchor-id="preparing-the-output">Preparing the output</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>gwstat_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(gwstat<span class="sc">$</span>SDF)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>cbind() to append the newly derived data [cannot introduce sorting /arrange etc]</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>hunan_gstat <span class="ot">&lt;-</span> <span class="fu">cbind</span>(hunan_sf, gwstat_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>What is the difference between these neighbours and the sp data</p>
+<ul>
+<li>LM, LSD,LVar, LSKe, LCV - L for Local</li>
+</ul>
+<p>Based on the output, there is no unique identifier for the data</p>
+</section>
+</section>
+<section id="visualising-geographically-weighted-summary-statistic" class="level2">
+<h2 class="anchored" data-anchor-id="visualising-geographically-weighted-summary-statistic">Visualising geographically weighted summary statistic</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(hunan_gstat) <span class="sc">+</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"GDPPC_LM"</span>, </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">n =</span> <span class="dv">5</span>, </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>          <span class="at">style=</span> <span class="st">"quantile"</span>) <span class="sc">+</span> </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span> </span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title =</span> <span class="st">"Distribution of geographically weighted mean"</span>, </span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.position =</span> <span class="st">"center"</span>, </span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">main.title.size =</span> <span class="fl">2.0</span>, </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.text.size =</span> <span class="fl">1.2</span>,</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.height=</span><span class="fl">1.50</span>, </span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">legend.width=</span><span class="fl">1.50</span>,</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">frame=</span><span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="InClassEx05_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
 </section>

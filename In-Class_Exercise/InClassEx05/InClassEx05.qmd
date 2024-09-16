@@ -15,34 +15,199 @@ execute:
 
 -   There can be a lot of robust discussions surrounding statistical analysis of Spatial weights, which assesses the strength of interaction (combined effect of correlation coefficient and weights)
 
-# 2.0 Installing Packages
+# 1.0 Objective & Overview
 
-For the purpose of this study, six R packages will be used. They are:
+By the end to this hands-on exercise, you will be able to:
 
--   [**sf**](https://r-spatial.github.io/sf/) provides functions for importing processing and wrangling geospatial data,,
+-   import geospatial data using appropriate function(s) of **sf** package,
 
--   [**raster**](https://rspatial.org/raster/) for handling raster data in R,
+-   import csv file using appropriate function of **readr** package,
 
--   [**spatstat**](https://cran.r-project.org/web/packages/spatstat/index.html) for performing Spatial Point Patterns Analysis such as kcross, Lcross, etc.,
+-   perform relational join using appropriate join function of **dplyr** package,
 
--   [**sparr**](https://tilmandavies.github.io/sparr/index.html) provides functions to estimate fixed and adaptive kernel-smoothed spatial relative risk surfaces via the density-ratio method and perform subsequent inference. Fixed-bandwidth spatiotemporal density and relative risk estimation is also supported
+-   compute spatial weights using appropriate functions of **spdep** package, and
 
--   [**tmap**](https://r-tmap.github.io/tmap/) provides functions to produce cartographic quality thematic maps, and
+-   calculate spatially lagged variables using appropriate functions of **spdep** package.
 
--   [**tidyverse**](https://www.tidyverse.org/), a family of R packages that provide functions to perform common data science tasks including and not limited to data import, data transformation, data wrangling and data visualisation.
+-   GWModel
+
+# 2.0 The Study Area and Data
+
+Two data sets will be used in this hands-on exercise, they are:
+
+-   Hunan county boundary layer. This is a geospatial data set in ESRI shapefile format.
+
+-   Hunan_2012.csv: This csv file contains selected Hunan’s local development indicators in 2012.
+
+Before we get started, we need to ensure that **spdep**, **sf**, **tmap** and **tidyverse** packages of R are currently installed in your R.
 
 ```{r}
-pacman::p_load(sf,raster,spatstat,sparr,tmap,tidyverse,readr, dplyr, animation)
+pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel )
 ```
 
-# 3.0 Importing and Preparing Study Area
+# 3.0 Getting the Data into R Environment
 
-In this exercise, we will use the following datasets:
+## 3.1 Import shapefile into R environment
 
--   forestfires, a csv file provides locations of forest fire detected from the Moderate Resolution Imaging Spectroradiometer (MODIS) sensor data. The data are downloaded from [Fire Information for Resource Management System](https://firms.modaps.eosdis.nasa.gov/download/). For the purpose of this exercise, only forest fires within Kepulauan Bangka Belitung will be used.
+The code chunk below uses [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package to import Hunan shapefile into R. The imported shapefile will be **simple features** Object of **sf**.
 
--   Kepulauan_Bangka_Belitung, an ESRI shapefile showing the sub-district (i.e. [kelurahan](https://en.wikipedia.org/wiki/Villages_of_Indonesia)) boundary of Kepulauan Bangka Belitung. The data set was downloaded from [Indonesia Geospatial](https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html) portal. The original data covers the whole Indonesia. For the purpose of this exercise, only sub-districts within Kepulauan Bangka Belitung are extracted.
+```{r}
+#| eval: false 
+hunan <- st_read(dsn="data/geospatial", layer="Hunan") %>% 
+  st_transform(crs=4490)
+```
 
-## 3.1 Importing study area
+## 3.2 Import csv file into R environment
 
-## 3.2 Converging to owin object
+```{r}
+#| eval: false 
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+## 3.3 Performing relational join 
+
+The code chunk below will be used to update the attribute table of *hunan*’s SpatialPolygonsDataFrame with the attribute fields of *hunan2012* dataframe. This is performed by using *left_join()* of **dplyr** package.
+
+```{r}
+#| eval: false 
+hunan <- left_join(hunan, hunan2012)
+names(hunan)
+```
+
+```{r}
+#| eval: false 
+hunan <- hunan %>% 
+  select(1:3, 7, 15, 16, 31, 32)
+```
+
+Take note of the following when doing relational join
+
+-   Upper case, Lower case lettering
+
+-   Common columns for joining
+
+-   **Storing the dataset in rds**
+
+```{r}
+#| eval: false 
+write_rds(hunan, "data/rds/hunan.rds")
+```
+
+To use this data for subsequent analysis:
+
+```{r}
+hunan_sf <- read_rds("data/rds/hunan.rds")
+```
+
+Useful rmarkdown:
+
+-   #\| eval: false
+
+-   #\| echo:false - does not show on the quarto document rendering
+
+## Mapping the GDPC 
+
+Converting to SpatialPolygonDataFrame
+
+```{r}
+hunan_sp <- hunan_sf %>% 
+  as_Spatial() 
+```
+
+# Geographically Weighted Summary Statistics with adaptive bandwidth 
+
+## Determine adaptive bandwidth 
+
+#### AIC 
+
+```{r}
+bw_AIC <- bw.gwr(GDPPC ~ 1,  #same value as the GDP Per Capita (Function = 1)
+                 data=hunan_sp, 
+                 approach="AIC", 
+                 adaptive=TRUE, 
+                 kernel="bisquare", 
+                 longlat = T)
+```
+
+-   Cross Validation
+
+-   AIC
+
+Unusual cases here:
+
+-   LatLong = T -\> will transform data into projected coordinate system (in kilometer) vs
+
+-   LongLat = T (Great Circle Transformation)
+
+#### Cross Validation 
+
+```{r}
+bw_CV <- bw.gwr(GDPPC ~ 1,
+                 data=hunan_sp, 
+                 approach="CV", 
+                 adaptive=TRUE, 
+                 kernel="bisquare", 
+                 longlat = T)
+```
+
+## Fixed bandwidth 
+
+```{r}
+#| eval: false
+bw_CV <- bw.gwr(GDPPC ~ 1,
+                 data=hunan_sp, 
+                 approach="CV", 
+                 adaptive=FALSE, 
+                 kernel="bisquare", 
+                 longlat = T)
+```
+
+You can use fixed bandwidth (change adaptive=TRUE to adaptive=FALSE)
+
+### Computing Geographically Summary statistics 
+
+```{r}
+gwstat <- gwss(data = hunan_sp, 
+               vars="GDPPC", 
+               bw = bw_AIC, 
+               kernel="bisquare", 
+               adaptive=TRUE,
+               longlat = T)
+```
+
+View(gwstat\[\["SDF"\]\]\@data)
+
+### Preparing the output 
+
+```{r}
+gwstat_df <- as.data.frame(gwstat$SDF)
+```
+
+cbind() to append the newly derived data \[cannot introduce sorting /arrange etc\]
+
+```{r}
+hunan_gstat <- cbind(hunan_sf, gwstat_df)
+```
+
+What is the difference between these neighbours and the sp data
+
+-   LM, LSD,LVar, LSKe, LCV - L for Local
+
+Based on the output, there is no unique identifier for the data
+
+## Visualising geographically weighted summary statistic
+
+```{r}
+tm_shape(hunan_gstat) + 
+  tm_fill("GDPPC_LM", 
+          n = 5, 
+          style= "quantile") + 
+  tm_borders(alpha = 0.5) + 
+  tm_layout(main.title = "Distribution of geographically weighted mean", 
+            main.title.position = "center", 
+            main.title.size = 2.0, 
+            legend.text.size = 1.2,
+            legend.height=1.50, 
+            legend.width=1.50,
+            frame=TRUE)
+```

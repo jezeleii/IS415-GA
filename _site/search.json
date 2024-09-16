@@ -278,5 +278,54 @@
     "title": "In-class Exercise 04",
     "section": "8.2 Plotting the Spatio-temporal KDE object",
     "text": "8.2 Plotting the Spatio-temporal KDE object\n\ntemp_gif &lt;- \"forestFires.gif\"\n\n# Check if the GIF already exists\nif (!file.exists(temp_gif)) {\n  # If the GIF doesn't exist, create and save it\n  saveGIF({\n    for(i in tims){\n      plot(kde_yday, i, \n           override.par=FALSE, \n           fix.range=TRUE,\n           main=paste('KDE at Day', i))\n    }\n  }, movie.name = temp_gif, interval = 0.5, ani.width=800, ani.height=600)\n} else {\n  # If the GIF already exists, skip the saving process\n  message(\"GIF already exists, skipping save.\")\n}\n\nGIF already exists, skipping save."
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx05/InClassEx05.html#import-shapefile-into-r-environment",
+    "href": "In-Class_Exercise/InClassEx05/InClassEx05.html#import-shapefile-into-r-environment",
+    "title": "In-class Exercise 05",
+    "section": "3.1 Import shapefile into R environment",
+    "text": "3.1 Import shapefile into R environment\nThe code chunk below uses st_read() of sf package to import Hunan shapefile into R. The imported shapefile will be simple features Object of sf.\n\nhunan &lt;- st_read(dsn=\"data/geospatial\", layer=\"Hunan\") %&gt;% \n  st_transform(crs=4490)"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx05/InClassEx05.html#import-csv-file-into-r-environment",
+    "href": "In-Class_Exercise/InClassEx05/InClassEx05.html#import-csv-file-into-r-environment",
+    "title": "In-class Exercise 05",
+    "section": "3.2 Import csv file into R environment",
+    "text": "3.2 Import csv file into R environment\n\nhunan2012 &lt;- read_csv(\"data/aspatial/Hunan_2012.csv\")"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx05/InClassEx05.html#performing-relational-join",
+    "href": "In-Class_Exercise/InClassEx05/InClassEx05.html#performing-relational-join",
+    "title": "In-class Exercise 05",
+    "section": "3.3 Performing relational join",
+    "text": "3.3 Performing relational join\nThe code chunk below will be used to update the attribute table of hunan’s SpatialPolygonsDataFrame with the attribute fields of hunan2012 dataframe. This is performed by using left_join() of dplyr package.\n\nhunan &lt;- left_join(hunan, hunan2012)\nnames(hunan)\n\n\nhunan &lt;- hunan %&gt;% \n  select(1:3, 7, 15, 16, 31, 32)\n\nTake note of the following when doing relational join\n\nUpper case, Lower case lettering\nCommon columns for joining\nStoring the dataset in rds\n\n\nwrite_rds(hunan, \"data/rds/hunan.rds\")\n\nTo use this data for subsequent analysis:\n\nhunan_sf &lt;- read_rds(\"data/rds/hunan.rds\")\n\nUseful rmarkdown:\n\n#| eval: false\n#| echo:false - does not show on the quarto document rendering"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx05/InClassEx05.html#mapping-the-gdpc",
+    "href": "In-Class_Exercise/InClassEx05/InClassEx05.html#mapping-the-gdpc",
+    "title": "In-class Exercise 05",
+    "section": "Mapping the GDPC",
+    "text": "Mapping the GDPC\nConverting to SpatialPolygonDataFrame\n\nhunan_sp &lt;- hunan_sf %&gt;% \n  as_Spatial()"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx05/InClassEx05.html#determine-adaptive-bandwidth",
+    "href": "In-Class_Exercise/InClassEx05/InClassEx05.html#determine-adaptive-bandwidth",
+    "title": "In-class Exercise 05",
+    "section": "Determine adaptive bandwidth",
+    "text": "Determine adaptive bandwidth\n\nAIC\n\nbw_AIC &lt;- bw.gwr(GDPPC ~ 1,  #same value as the GDP Per Capita (Function = 1)\n                 data=hunan_sp, \n                 approach=\"AIC\", \n                 adaptive=TRUE, \n                 kernel=\"bisquare\", \n                 longlat = T)\n\nAdaptive bandwidth (number of nearest neighbours): 62 AICc value: 1923.156 \nAdaptive bandwidth (number of nearest neighbours): 46 AICc value: 1920.469 \nAdaptive bandwidth (number of nearest neighbours): 36 AICc value: 1917.324 \nAdaptive bandwidth (number of nearest neighbours): 29 AICc value: 1916.661 \nAdaptive bandwidth (number of nearest neighbours): 26 AICc value: 1914.897 \nAdaptive bandwidth (number of nearest neighbours): 22 AICc value: 1914.045 \nAdaptive bandwidth (number of nearest neighbours): 22 AICc value: 1914.045 \n\n\n\nCross Validation\nAIC\n\nUnusual cases here:\n\nLatLong = T -&gt; will transform data into projected coordinate system (in kilometer) vs\nLongLat = T (Great Circle Transformation)\n\n\n\nCross Validation\n\nbw_CV &lt;- bw.gwr(GDPPC ~ 1,\n                 data=hunan_sp, \n                 approach=\"CV\", \n                 adaptive=TRUE, \n                 kernel=\"bisquare\", \n                 longlat = T)\n\nAdaptive bandwidth: 62 CV score: 15515442343 \nAdaptive bandwidth: 46 CV score: 14937956887 \nAdaptive bandwidth: 36 CV score: 14408561608 \nAdaptive bandwidth: 29 CV score: 14198527496 \nAdaptive bandwidth: 26 CV score: 13898800611 \nAdaptive bandwidth: 22 CV score: 13662299974 \nAdaptive bandwidth: 22 CV score: 13662299974"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx05/InClassEx05.html#fixed-bandwidth",
+    "href": "In-Class_Exercise/InClassEx05/InClassEx05.html#fixed-bandwidth",
+    "title": "In-class Exercise 05",
+    "section": "Fixed bandwidth",
+    "text": "Fixed bandwidth\n\nbw_CV &lt;- bw.gwr(GDPPC ~ 1,\n                 data=hunan_sp, \n                 approach=\"CV\", \n                 adaptive=FALSE, \n                 kernel=\"bisquare\", \n                 longlat = T)\n\nYou can use fixed bandwidth (change adaptive=TRUE to adaptive=FALSE)\n\nComputing Geographically Summary statistics\n\ngwstat &lt;- gwss(data = hunan_sp, \n               vars=\"GDPPC\", \n               bw = bw_AIC, \n               kernel=\"bisquare\", \n               adaptive=TRUE,\n               longlat = T)\n\nView(gwstat[[“SDF”]]@data)\n\n\nPreparing the output\n\ngwstat_df &lt;- as.data.frame(gwstat$SDF)\n\ncbind() to append the newly derived data [cannot introduce sorting /arrange etc]\n\nhunan_gstat &lt;- cbind(hunan_sf, gwstat_df)\n\nWhat is the difference between these neighbours and the sp data\n\nLM, LSD,LVar, LSKe, LCV - L for Local\n\nBased on the output, there is no unique identifier for the data"
+  },
+  {
+    "objectID": "In-Class_Exercise/InClassEx05/InClassEx05.html#visualising-geographically-weighted-summary-statistic",
+    "href": "In-Class_Exercise/InClassEx05/InClassEx05.html#visualising-geographically-weighted-summary-statistic",
+    "title": "In-class Exercise 05",
+    "section": "Visualising geographically weighted summary statistic",
+    "text": "Visualising geographically weighted summary statistic\n\ntm_shape(hunan_gstat) + \n  tm_fill(\"GDPPC_LM\", \n          n = 5, \n          style= \"quantile\") + \n  tm_borders(alpha = 0.5) + \n  tm_layout(main.title = \"Distribution of geographically weighted mean\", \n            main.title.position = \"center\", \n            main.title.size = 2.0, \n            legend.text.size = 1.2,\n            legend.height=1.50, \n            legend.width=1.50,\n            frame=TRUE)"
   }
 ]
