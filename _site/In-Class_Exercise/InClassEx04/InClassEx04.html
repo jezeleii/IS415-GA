@@ -299,7 +299,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 15, 2024</p>
+      <p class="date-modified">September 16, 2024</p>
     </div>
   </div>
     
@@ -1197,22 +1197,25 @@ Evaluation
 <section id="plotting-the-spatio-temporal-kde-object-2" class="level2">
 <h2 class="anchored" data-anchor-id="plotting-the-spatio-temporal-kde-object-2">8.2 Plotting the Spatio-temporal KDE object</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>tims <span class="ot">&lt;-</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">352</span></span>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>temp_gif <span class="ot">&lt;-</span> <span class="st">"forestFires.gif"</span></span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>temp_gif <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">'.gif'</span>)</span>
-<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a><span class="fu">saveGIF</span>({</span>
-<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> tims){</span>
-<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot</span>(kde_yday, i, </span>
-<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">override.par=</span><span class="cn">FALSE</span>, </span>
-<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">fix.range=</span><span class="cn">TRUE</span>,</span>
-<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">main=</span><span class="fu">paste</span>(<span class="st">'KDE at Day'</span>,i))</span>
-<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a>}, <span class="at">movie.name =</span> <span class="st">"forestFires.gif"</span>, <span class="at">interval =</span> <span class="fl">0.5</span>, <span class="at">ani.width=</span><span class="dv">800</span>, <span class="at">ani.height=</span><span class="dv">600</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Check if the GIF already exists</span></span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(temp_gif)) {</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># If the GIF doesn't exist, create and save it</span></span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveGIF</span>({</span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> tims){</span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">plot</span>(kde_yday, i, </span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">override.par=</span><span class="cn">FALSE</span>, </span>
+<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a>           <span class="at">fix.range=</span><span class="cn">TRUE</span>,</span>
+<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">main=</span><span class="fu">paste</span>(<span class="st">'KDE at Day'</span>, i))</span>
+<span id="cb60-12"><a href="#cb60-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a>  }, <span class="at">movie.name =</span> temp_gif, <span class="at">interval =</span> <span class="fl">0.5</span>, <span class="at">ani.width=</span><span class="dv">800</span>, <span class="at">ani.height=</span><span class="dv">600</span>)</span>
+<span id="cb60-14"><a href="#cb60-14" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb60-15"><a href="#cb60-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># If the GIF already exists, skip the saving process</span></span>
+<span id="cb60-16"><a href="#cb60-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(<span class="st">"GIF already exists, skipping save."</span>)</span>
+<span id="cb60-17"><a href="#cb60-17" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Output at: forestFires.gif</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] TRUE</code></pre>
+<pre><code>GIF already exists, skipping save.</code></pre>
 </div>
 </div>
 <p><img src="forestFires.gif" class="img-fluid"></p>

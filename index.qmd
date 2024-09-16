@@ -104,7 +104,7 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 ::: {style="width: 100%"}
 `<a href="`{=html}https://is415-ga-jezelei.netlify.app/In-Class_Exercise/InClassEx04/InClassEx04.html`">`{=html}
 
-![](headerImages/Hands-on_Ex03_Header.png){fig-align="right" width="90%"}
+![](images/Hands-on_Ex04_Header.png){fig-align="right" width="90%"}
 
 </a>
 :::
@@ -123,8 +123,6 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 
 ::: {style="width: 100%"}
 `<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05`">`{=html}
-
-![](headerImages/Hands-on_Ex03_Header.png){fig-align="right" width="90%"}
 
 </a>
 :::
