@@ -472,53 +472,22 @@ sigma_diggle
 
 The choice between automatic and adaptive bandwidth depends on the objectives and nature of our analysis.
 
++---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Automatic Bandwidth                                                                               | Adaptive Bandwidth                                                                                                                                                     |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
++===================================================================================================+========================================================================================================================================================================+
 | Offers Consistency across Space: Uniform smoothing across the entire study area.                  | Varying Spatial Densities: Showing significant differences in conflict event densities (urban, rural ares), adaptive bandwidth could give a more nuanced understanding |
++---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | General Hotspot Detection: To identify overall hotspots or conflict zones without too much detail | Local Hotspot Detection                                                                                                                                                |
++---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 For the following sections, we will compare the KDE of Armed Conflict Event_Types in Myanmar over the quarters of Jan 2021 - Jun 2024.
 
 ## 8.2 Extracting Study Areas
 
-Based on this intermediate dataset, the top 3 states with the highest fatalities are Sagaing, Magway(Magwe) and Mandalay, which earlier we have discussed to be the 'North-West' region of Myanmar.
-
-According to [COAR Global](https://coar-global.org/2023/09/27/broken-heartland-armed-violence-and-emergency-response-in-central-myanmar/), and other organizations following the conflict such as the [Myanmar IISS](https://myanmar.iiss.org/analysis/humanitarian), this region has been afflicted with decades long ethinic and religious tensions, economic hardship.
-
-> The Dry Zone was one of the first areas to see armed resistance after the coup, as local anti-junta militias arose spontaneously with colourful names like the Myingyan Black Tigers.
->
-> But the resistance here has been plagued by factionalism, unable to consolidate under a central command, although the NUG appears to be taking steps to rectify this.
->
-> -Frontier Myanmar
-
-As such, I will focus my analysis on these regions
-
 ```{r}
-armed_conflict_fatalities
+armed_conflict_fatalities %>% 
+  dplyr::select(admin1, total_fatalities_admin1)
 ```
-
-```{r}
-class(armed_conflict_quartered)
-```
-
-```{r}
-armed_conflict_3_sf <- armed_conflict_quartered %>% 
-  filter(admin1 %in% c("Sagaing", "Magway", "Mandalay"))
-```
-
-```{r}
-state_region_3_sf <- state_region_sf %>% 
-  filter(ST %in% c("Sagaing", "Magway", "Mandalay"))
-```
-
-```{r}
-tm_shape(state_region_sf) + 
-  tm_polygons() + 
-  tm_shape(armed_conflict_3_sf) + 
-  tm_dots()
-```
-
-\[STOPPED HERE\]
 
 We can create a vector of the quarter time period and use the functions lapply() (or purrr::map()) to filter and select the data for each quarter, storing the results in a list:
 
@@ -634,21 +603,6 @@ plot(q3_2023, main="Q4 2023")
 #2024 Plots
 plot(q1_2024, main="Q1 2024")
 plot(q2_2024, main="Q2 2024")
-```
-
-```{r fig.width=12, fig.height=10}
-ggplot(armed_conflict_quartered, aes(fill = FATALITIES, geometry = geometry)) +
-  geom_sf(size = 0.001, alpha = 0.5) +
-  scale_fill_gradientn(
-    colours = plasma(10), 
-    breaks = c(0, 5, 10, 20, 30, 40, 50, 100, max(armed_conflict_quartered$FATALITIES)),
-    limits = c(0, max(armed_conflict_quartered$FATALITIES)),
-    oob = scales::squish
-  ) +
-  facet_wrap(~ quarter, ncol = 4, nrow = 4) +
-  labs(title = "Total Fatalities by Event Type per Quarter", fill = "Fatalities") +
-  theme_minimal()
-
 ```
 
 Our owin object:

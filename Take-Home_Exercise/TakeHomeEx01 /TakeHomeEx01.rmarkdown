@@ -9,7 +9,6 @@ execute:
   freeze: true
 ---
 
-
 # 1.0 Overview
 
 ## 1.1 Objectives
@@ -78,11 +77,9 @@ In this Take-Home Exercise, I'm using the above packages (covered in class), and
 
 The code chunk below installs and launches the R packages,
 
-
 ```{r}
 pacman::p_load(tidyverse, sf, sp, tmap, spatstat, raster, spNetwork, RColorBrewer, viridis,lubridate, dplyr)
 ```
-
 
 ## 2.2 Datasets Used
 
@@ -122,14 +119,11 @@ These boundaries are politically and administratively significant. Different **s
 
 Using read_csv to import the data in the `MYANMAR.CSV` file, which is the ACLED Dataset detailing armed conflict in Myanmar:
 
-
 ```{r}
 armed_conflict_data <- read_csv("data/aspatial/2021-01-01-2024-06-30-Myanmar.csv")
 ```
 
-
 Check and transform the CRS of the ACLED Dataset
-
 
 ```{r}
 armed_conflict_sf <- st_as_sf(armed_conflict_data, coords = c("longitude", "latitude"), crs = 4326) %>% 
@@ -140,11 +134,9 @@ armed_conflict_sf <- st_as_sf(armed_conflict_data, coords = c("longitude", "lati
 st_crs(armed_conflict_sf)
 ```
 
-
 ### 2. Country, State, Region, District & Township Boundaries
 
 Using the st_read function, we will import data from the State & Region Sub-boundary dataset to visualize Myanmar's landscape:
-
 
 ```{r}
 state_region_sf <-  st_read(dsn="data/geospatial/stateRegion", layer 
@@ -152,11 +144,9 @@ state_region_sf <-  st_read(dsn="data/geospatial/stateRegion", layer
   st_transform(myanmar_sf, crs=32647)
 ```
 
-
 From here on out, we will denote points-of-interest as POI.
 
 I will load the corresponding shapefile:
-
 
 ```{r}
 poi_sf <- st_read(dsn = "data/geospatial/pointsOfInterest", layer = "hotosm_mmr_points_of_interest_points_shp") %>%
@@ -164,9 +154,7 @@ poi_sf <- st_read(dsn = "data/geospatial/pointsOfInterest", layer = "hotosm_mmr_
   st_transform(crs = 32647)  
 ```
 
-
 After importing the dataset, we will plot to see the boundaries of the State & Regions of Myanmar. The **`plot()`** function is used to plot the geometry of the **`sf`** object. The **`st_geometry()`** function is used to extract the geometry of the **`state_region_sf`** object.
-
 
 ```{r fig.width=12, fig.height=10}
 par(mar = c(0,0,0,0))
@@ -177,19 +165,15 @@ coords <- st_coordinates(centroids)
 text(x = coords[,1], y=coords[,2], labels = state_region_sf$ST, cex=0.9, )
 ```
 
-
 ## 3.2 Data Preparation
 
 Before a thematic map can be prepared, we have to prepare a data table which includes the variables event types, focused on : Battles, Explosion/Remote violence, Strategic developments, and Violence against civilians.
-
 
 ```{r}
 str(armed_conflict_sf)
 ```
 
-
 Here is a visual overview of the 4 different types of Armed Conflict (based on event_types) :
-
 
 ```{r}
 ggplot()+ 
@@ -216,11 +200,9 @@ ggplot() +
   facet_wrap(~event_type)  
 ```
 
-
 From the plots above, we see that armed conflict even types seem to concentrate in the North-west region, particularly at the boundary of Sagaing, Mandalay and Magwe state.
 
 In order to group and have a sensing of the effects of armed conflict, we will aggregate based on fatalities to see a quick overview as well as their state (administrative boundary 1) :
-
 
 ```{r}
 armed_conflict_fatalities <- armed_conflict_sf %>% 
@@ -239,11 +221,9 @@ armed_conflict_fatalities <- armed_conflict_sf %>%
 armed_conflict_fatalities
 ```
 
-
 We'll now process the data to see the corresponding fatalities with the different event types mentioned above, **Battles, Explosions/Remote violence, Strategic developments and Violence against civilians**:
 
--   Since we are interested in deriving the quarterly KDE layers, we will convert the event_date column (currently in \[chr\] format), into a Date object that can be used for further analysis.
-
+-   Since we are interested in deriving the quarterly KDE layers, we will convert the event_date column (currently in $$chr$$ format), into a Date object that can be used for further analysis.
 
 ```{r}
 armed_conflict_quartered <- armed_conflict_sf %>% 
@@ -257,9 +237,7 @@ armed_conflict_quartered <- armed_conflict_sf %>%
   ungroup()
 ```
 
-
 The code chunk below saves the intermediate dataset:
-
 
 ```{r}
 
@@ -273,9 +251,7 @@ if (!file.exists(file_path)) {
 }
 ```
 
-
 ## 3.3 Converting sf Object to sp Object
-
 
 ```{r}
 armed_conflict_sp <- as(armed_conflict_quartered, "Spatial")
@@ -296,9 +272,7 @@ print(unique_coordinates)  # View the count of unique geometries
 print(unique_event_id_count)  # View the count of unique event IDs
 ```
 
-
 ## 3.4 Converting sp Object to spatstat's ppp Format
-
 
 ```{r}
 armed_conflict_ppp <- as.ppp(st_coordinates(armed_conflict_quartered), st_bbox(armed_conflict_quartered))
@@ -306,13 +280,11 @@ armed_conflict_ppp <- as.ppp(st_coordinates(armed_conflict_quartered), st_bbox(a
 armed_conflict_ppp <- as.ppp(armed_conflict_quartered)
 ```
 
-
 **Warning: (Regarding duplicates)** In spatial point patterns analysis an issue of significant is the presence of duplicates. The statistical methodology used for spatial point patterns processes is based largely on the assumption that process are *simple*, that is, that the points cannot be coincident.
 
 # 4.0 Handling duplicated points
 
 We check for duplication in the ppp object using the code chunk below. Before processing, we need to account for the fact that we have divided the data into quarters, which would result in the event_types at the same location being treated as separate points, but spatstat recognizing them as duplicates as they share the exact same coordinates.
-
 
 ```{r}
 any(duplicated(armed_conflict_ppp))
@@ -321,7 +293,6 @@ any(duplicated(armed_conflict_ppp))
 ```{r}
 sum(multiplicity(armed_conflict_ppp) > 1)
 ```
-
 
 Why are there so many duplicates out of 24,216 observations?
 
@@ -332,7 +303,6 @@ Why are there so many duplicates out of 24,216 observations?
 Based on the analysis of unique coordinate points earlier, the unique coordinates total to 7416 unique locations within the initial dataset, so the `sum(multiplicity(armed_conflict_ppp) > 1)` result is actually misleading as it may be accounting for events across time in the same coordinate location.
 
 To account for the number of locations which have more than one point event, we can use the code chunk below:
-
 
 ```{r}
 coords <- st_coordinates(armed_conflict_sf)
@@ -350,9 +320,7 @@ count_locations_with_multiple_events <- nrow(locations_with_multiple_events)
 count_locations_with_multiple_events
 ```
 
-
 Out of 7416 unique coordinate points, 4118 have more than one conflict events occuring throughout the time period of Jan 2021 - Jun 2024.
-
 
 ```{r}
 tmap_mode('view')
@@ -365,13 +333,11 @@ tm_shape(armed_conflict_quartered) +
 tmap_mode('plot')
 ```
 
-
 ## 4.1 Spotting Duplicate points from the map shown
 
 To address the duplicate points, which largely arises due to the temporal aspect of the different violence types happening throughout the years, we will use Jittering (adding a small perturbation to the duplicate points so that they do not occupy the exact same space)
 
 The code chunk below implements the jittering approach.
-
 
 ```{r}
 armed_conflict_jitter <- rjitter(armed_conflict_ppp, 
@@ -380,21 +346,17 @@ armed_conflict_jitter <- rjitter(armed_conflict_ppp,
                                  drop=TRUE)
 ```
 
-
 Check for duplicated points in the data:
-
 
 ```{r}
 any(duplicated(armed_conflict_jitter))
 ```
-
 
 # 5.0 Creating *owin* object
 
 When analysing spatial point patterns, it is a good practice to confine the analysis with a geographical area like Myanmar boundary. In **spatstat**, an object called ***owin*** is specially designed to represent this polygonal region.
 
 The code chunk below is used to covert state_Region SpatialPolygon object into owin object of **spatstat:**
-
 
 ```{r}
 myanmar_states_owin <- as.owin(state_region_sf)
@@ -404,9 +366,7 @@ myanmar_states_owin <- as.owin(state_region_sf)
 class(myanmar_states_owin)
 ```
 
-
 The output object can be displayed by using plot():
-
 
 ```{r}
 plot(myanmar_states_owin)
@@ -416,27 +376,21 @@ plot(myanmar_states_owin)
 summary(myanmar_states_owin)
 ```
 
-
 # 6.0 Combining point events object and owin object
 
 In the next step of geospatial data wrangling, we extract armed conflict events located within Myanmar using this code chunk:
-
 
 ```{r}
 armed_conflict_myn_ppp <- armed_conflict_ppp[myanmar_states_owin]
 ```
 
-
 The output combined both the point and polygon feature in one ppp object class as shown below:
-
 
 ```{r}
 plot(armed_conflict_myn_ppp, cex = 0.4, main="Spatial Distribution of Armed Conflict in Myanmar")
 ```
 
-
 The code chunk further dissects the distribution according time:
-
 
 ```{r}
 quarters <- unique(armed_conflict_quartered$quarter)
@@ -455,7 +409,6 @@ for (q in quarters){
 }
 ```
 
-
 # 7.0 1st Order Spatial Point Pattern Analysis
 
 ## 7.1 Kernel Density Estimation
@@ -473,7 +426,6 @@ The code chunk below computes a kernel density by using the following configurat
 
 -   The smoothing kernel used is *gaussian*, which is the default. Other smoothing methods are: “epanechnikov”, “quartic” or “disc”.
 
-
 ```{r}
 kde_armed_conflict_myn_bw <- density(armed_conflict_myn_ppp, 
                                      sigma=bw.diggle, 
@@ -490,19 +442,15 @@ sigma_diggle <- bw.diggle(armed_conflict_myn_ppp)
 sigma_diggle
 ```
 
-
 ### 7.1.2 Rescalling KDE values
 
 In the code chunk below, we need to rescale.ppp() unit from meter to kilometer to prevent interference in the scale as well as the distortion of the bandwith values:
-
 
 ```{r}
 armed_conflict_myn_ppp.km <- rescale.ppp(armed_conflict_myn_ppp, 1000, "km")
 ```
 
-
 We re-run density() using the rescaled data and plot the output KDE map: (Note the difference between \_bw and .bw to denote scaled data)
-
 
 ```{r}
 kde_armed_conflict_myn.bw <- density(armed_conflict_myn_ppp.km,
@@ -518,68 +466,27 @@ sigma_diggle <- bw.diggle(armed_conflict_myn_ppp.km)
 sigma_diggle
 ```
 
-
 # 8.0 Comparing Spatial Point Patterns across Quarterly KDEs
 
 ## 8.1 Fixed vs Adaptive KDE
 
 The choice between automatic and adaptive bandwidth depends on the objectives and nature of our analysis.
 
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Automatic Bandwidth                                                                               | Adaptive Bandwidth                                                                                                                                                     |
-+===================================================================================================+========================================================================================================================================================================+
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Offers Consistency across Space: Uniform smoothing across the entire study area.                  | Varying Spatial Densities: Showing significant differences in conflict event densities (urban, rural ares), adaptive bandwidth could give a more nuanced understanding |
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | General Hotspot Detection: To identify overall hotspots or conflict zones without too much detail | Local Hotspot Detection                                                                                                                                                |
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 For the following sections, we will compare the KDE of Armed Conflict Event_Types in Myanmar over the quarters of Jan 2021 - Jun 2024.
 
 ## 8.2 Extracting Study Areas
 
-Based on this intermediate dataset, the top 3 states with the highest fatalities are Sagaing, Magway(Magwe) and Mandalay, which earlier we have discussed to be the 'North-West' region of Myanmar.
-
-According to [COAR Global](https://coar-global.org/2023/09/27/broken-heartland-armed-violence-and-emergency-response-in-central-myanmar/), and other organizations following the conflict such as the [Myanmar IISS](https://myanmar.iiss.org/analysis/humanitarian), this region has been afflicted with decades long ethinic and religious tensions, economic hardship.
-
-> The Dry Zone was one of the first areas to see armed resistance after the coup, as local anti-junta militias arose spontaneously with colourful names like the Myingyan Black Tigers.
->
-> But the resistance here has been plagued by factionalism, unable to consolidate under a central command, although the NUG appears to be taking steps to rectify this.
->
-> -Frontier Myanmar
-
-As such, I will focus my analysis on these regions
-
-
 ```{r}
-armed_conflict_fatalities
+armed_conflict_fatalities %>% 
+  dplyr::select(admin1, total_fatalities_admin1)
 ```
-
-```{r}
-class(armed_conflict_quartered)
-```
-
-```{r}
-armed_conflict_3_sf <- armed_conflict_quartered %>% 
-  filter(admin1 %in% c("Sagaing", "Magway", "Mandalay"))
-```
-
-```{r}
-state_region_3_sf <- state_region_sf %>% 
-  filter(ST %in% c("Sagaing", "Magway", "Mandalay"))
-```
-
-```{r}
-tm_shape(state_region_sf) + 
-  tm_polygons() + 
-  tm_shape(armed_conflict_3_sf) + 
-  tm_dots()
-```
-
-
-\[STOPPED HERE\]
 
 We can create a vector of the quarter time period and use the functions lapply() (or purrr::map()) to filter and select the data for each quarter, storing the results in a list:
-
 
 ```{r}
 #2021 
@@ -644,9 +551,7 @@ q2_2024 <- armed_conflict_quartered %>%
   dplyr::select(event_type, geometry)
 ```
 
-
 Plotting the armed_conflict by quarter :
-
 
 ```{r}
 armed_conflict_quartered
@@ -697,29 +602,11 @@ plot(q1_2024, main="Q1 2024")
 plot(q2_2024, main="Q2 2024")
 ```
 
-```{r fig.width=12, fig.height=10}
-ggplot(armed_conflict_quartered, aes(fill = FATALITIES, geometry = geometry)) +
-  geom_sf(size = 0.001, alpha = 0.5) +
-  scale_fill_gradientn(
-    colours = plasma(10), 
-    breaks = c(0, 5, 10, 20, 30, 40, 50, 100, max(armed_conflict_quartered$FATALITIES)),
-    limits = c(0, max(armed_conflict_quartered$FATALITIES)),
-    oob = scales::squish
-  ) +
-  facet_wrap(~ quarter, ncol = 4, nrow = 4) +
-  labs(title = "Total Fatalities by Event Type per Quarter", fill = "Fatalities") +
-  theme_minimal()
-
-```
-
-
 Our owin object:
-
 
 ```{r}
 plot(myanmar_states_owin)
 ```
-
 
 ## 8.4 Computing Quarterly KDE
 
@@ -728,7 +615,6 @@ By using the code chunk below, we can extract the armed_conflict points using th
 -   combine the myanmar_states_owin object and
 
 -   rescale the data as done previously
-
 
 ```{r}
 par(mfrow=c(2,2))
@@ -756,9 +642,7 @@ q1_2024_jitter <- armed_conflict_jitter[armed_conflict_jitter$marks == "Q1 2024"
 q2_2024_jitter <- armed_conflict_jitter[armed_conflict_jitter$marks == "Q2 2024"]
 ```
 
-
 ### 8.4.1 Combining Quarterly Armed Conflict Points and with the owin Object
-
 
 ```{r}
 # Subset jittered points by the Myanmar window (myanmar_states_owin)
@@ -786,9 +670,7 @@ q2_2024_ppp <- q2_2024_jitter[myanmar_states_owin]
 
 ```
 
-
 ### 8.4.2 Rescale.ppp()
-
 
 ```{r}
 # For 2021
@@ -814,9 +696,7 @@ q1_2024_ppp.km = rescale.ppp(q1_2024_ppp, 1000, "km")
 q2_2024_ppp.km = rescale.ppp(q2_2024_ppp, 1000, "km")
 ```
 
-
 In the code chunk below, we will compute the KDE of each quarter of each year. ***bw.diggle*** method is used to derive the bandwidth of each KDE:
-
 
 ```{r}
 par(mfrow=c(2,2))
@@ -912,7 +792,6 @@ plot(density(q2_2024_ppp.km,
      main="Q2 2024")
 ```
 
-
 # 9.0 Nearest Neighbours Analysis:
 
 In this section, we will perform the Clark-Evans test of aggregation for a spatial point pattern by using [*clarkevans.test()*](https://www.rdocumentation.org/packages/spatstat/versions/1.63-3/topics/clarkevans.test) of **statspat**.
@@ -927,7 +806,6 @@ The 95% confident interval will be used.
 
 ## 9.1 Testing Spatial Point Patterns using Clark and Evans Test
 
-
 ```{r}
 clarkevans.test(armed_conflict_myn_ppp.km,
                 correction="none",
@@ -936,9 +814,7 @@ clarkevans.test(armed_conflict_myn_ppp.km,
                 nsim=99)
 ```
 
-
 ### 9.1.1 Clark and Evans Test: Q1 2021
-
 
 ```{r}
 clarkevans.test(q1_2021_ppp.km, 
@@ -948,9 +824,7 @@ clarkevans.test(q1_2021_ppp.km,
                 nsim=999)
 ```
 
-
 ### 9.1.2 Clark and Evans Test: Q1 2022
-
 
 ```{r}
 clarkevans.test(q1_2022_ppp.km, 
@@ -960,9 +834,7 @@ clarkevans.test(q1_2022_ppp.km,
                 nsim=999)
 ```
 
-
 ### 9.1.3 Clark and Evans Test: Q1 2023
-
 
 ```{r}
 clarkevans.test(q1_2023_ppp.km, 
@@ -972,9 +844,7 @@ clarkevans.test(q1_2023_ppp.km,
                 nsim=999)
 ```
 
-
 ### 9.1.4 Clark and Evans Test: Q1 2024
-
 
 ```{r}
 clarkevans.test(q1_2024_ppp.km, 
@@ -983,7 +853,6 @@ clarkevans.test(q1_2024_ppp.km,
                 alternative=c("two.sided"), 
                 nsim=999)
 ```
-
 
 # 10.0 2nd Order Spatial Point Patterns Analysis
 
@@ -995,21 +864,17 @@ The code chunk below is used to compute G-function using *Gest()* of **spatat** 
 
 Q1_2021:
 
-
 ```{r}
 G_Q1_2021 <- Gest(q1_2021_ppp, correction="border")
 plot(G_Q1_2021)
 ```
 
-
 Q1_2024:
-
 
 ```{r}
 G_Q1_2024 <- Gest(q1_2024_ppp, correction="border")
 plot(G_Q1_2024)
 ```
-
 
 ### 10.1.2 Performing Complete Spatial Randomness Test
 
@@ -1023,7 +888,6 @@ The null hypothesis will be rejected if p-value is smaller than alpha value of 0
 
 Monte Carlo test with G-function:
 
-
 ```{r}
 G_Q1_2021.csr <- envelope(q1_2021_ppp, Gest, nsim=99)
 ```
@@ -1032,9 +896,7 @@ G_Q1_2021.csr <- envelope(q1_2021_ppp, Gest, nsim=99)
 plot(G_Q1_2021.csr)
 ```
 
-
 Q1_2024:
-
 
 ```{r}
 G_Q1_2024.csr <- envelope(q1_2024_ppp, Gest, nsim=99)
@@ -1044,20 +906,16 @@ G_Q1_2024.csr <- envelope(q1_2024_ppp, Gest, nsim=99)
 plot(G_Q1_2024.csr)
 ```
 
-
 ## 10.2 Analysing Spatial Point Process using F-Function
 
 #### 10.2.1 Computing F-function estimation
-
 
 ```{r}
 F_Q1_2021 = Fest(q1_2021_ppp, correction="best")
 plot(F_Q1_2021)
 ```
 
-
 #### 10.2.2 **Performing Complete Spatial Randomness Test**
-
 
 ```{r}
 F_Q1_2021.csr <- envelope(q1_2021_ppp, Fest, nsim=99)
@@ -1067,20 +925,16 @@ F_Q1_2021.csr <- envelope(q1_2021_ppp, Fest, nsim=99)
 plot(F_Q1_2021.csr)
 ```
 
-
 ## 10.3 Analysing Spatial Point Process using K-Function
 
 #### 10.3.1 Computing K-function estimation
-
 
 ```{r}
 K_Q1_2021 <- Kest(q1_2021_ppp, correction="Ripley")
 plot(K_Q1_2021, . -r ~ r, ylab= "K(d)-r", xlab = "d(m)")
 ```
 
-
 #### 10.3.2 **Performing Complete Spatial Randomness Test**
-
 
 ```{r}
 K_Q1_2021.csr <- envelope(q1_2021_ppp, Kest, nsim=99, rank=1, glocal=TRUE )
@@ -1090,11 +944,9 @@ K_Q1_2021.csr <- envelope(q1_2021_ppp, Kest, nsim=99, rank=1, glocal=TRUE )
 plot(K_Q1_2021.csr, . - r ~ r, xlab="d", ylab="K(d)-r")
 ```
 
-
 ## 10.4 Analysing Spatial Point Process using L-Function
 
 #### 10.4.1 Computing L-function estimation
-
 
 ```{r}
 L_Q1_2021 <- Lest(q1_2021_ppp, correction = "Ripley")
@@ -1102,9 +954,7 @@ plot(L_Q1_2021, . -r ~ r,
      ylab= "L(d)-r", xlab = "d(m)")
 ```
 
-
 #### 10.4.2 **Performing Complete Spatial Randomness Test**
-
 
 ```{r}
 L_Q1_2021.csr <- envelope(childcare_ck_ppp, Lest, nsim = 99, rank = 1, glocal=TRUE)
@@ -1114,15 +964,12 @@ L_Q1_2021.csr <- envelope(childcare_ck_ppp, Lest, nsim = 99, rank = 1, glocal=TR
 plot(L_Q1_2021.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
 
-
-# X.0 Additional Analysis 
+# X.0 Additional Analysis
 
 Due to the humanitarian casualties involved in the ongoing armed conflict, something interesting to explore is how some points of interest (particularly hospitals, shelters, police stations) are relevant to the conflict.
 
 In the analysis of news articles by The Irrawaddy, a journalistic publication covering Myanmar and Southeast Asian news (with a Left-Center Bias, and CNN, there are claims that the Military Junta has been deliberately bombing Hospitals and other similar institutions aiming to provide afflicted civilians with aid. With the quarterly KDE we have derived earlier, it may serve as useful to see the proximity of these points of interest to clustered armed conflict zones. Additionally, we will focus our analysis on 3 primary states: Sagaing, Magway and Mandalay
 
-
 ```{r}
 armed_conflict_fatalities
 ```
-

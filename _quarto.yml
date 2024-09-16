@@ -41,6 +41,12 @@ website:
             href: "In-Class_Exercise/InClassEx09/InClassEx09.html"
           - text: "In-class Exercise 10"
             href: "In-Class_Exercise/InClassEx10/InClassEx10.html"
+            
+      - text: "Take-home Exercise"
+        menu: 
+          - text: "Take-home Exercise 1"
+            href: "Take-Home_Exercise/TakeHomeEx01/TakeHomeEx01.html"
+        
     right: 
       - href: index.qmd
         text: Home
