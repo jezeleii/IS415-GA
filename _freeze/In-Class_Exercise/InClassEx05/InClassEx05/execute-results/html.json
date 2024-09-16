@@ -1,0 +1,15 @@
+{
+  "hash": "54d9768a311395bb6a108a7601d5004e",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"In-class Exercise 05\"\nauthor: \"Jezelei Manangan\"\ndate: \"September 16, 2024\"\ndate-modified: \"last-modified\"\nexecute: \n  eval: true\n  echo: true\n  freeze: true\n---\n\n\n# 1.0 Objective & Overview\n\n## Spatial Weights & Applications \n\n-   There can be a lot of robust discussions surrounding statistical analysis of Spatial weights, which assesses the strength of interaction (combined effect of correlation coefficient and weights)\n\n# 2.0 Installing Packages\n\nFor the purpose of this study, six R packages will be used. They are:\n\n-   [**sf**](https://r-spatial.github.io/sf/) provides functions for importing processing and wrangling geospatial data,,\n\n-   [**raster**](https://rspatial.org/raster/) for handling raster data in R,\n\n-   [**spatstat**](https://cran.r-project.org/web/packages/spatstat/index.html) for performing Spatial Point Patterns Analysis such as kcross, Lcross, etc.,\n\n-   [**sparr**](https://tilmandavies.github.io/sparr/index.html) provides functions to estimate fixed and adaptive kernel-smoothed spatial relative risk surfaces via the density-ratio method and perform subsequent inference. Fixed-bandwidth spatiotemporal density and relative risk estimation is also supported\n\n-   [**tmap**](https://r-tmap.github.io/tmap/) provides functions to produce cartographic quality thematic maps, and\n\n-   [**tidyverse**](https://www.tidyverse.org/), a family of R packages that provide functions to perform common data science tasks including and not limited to data import, data transformation, data wrangling and data visualisation.\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(sf,raster,spatstat,sparr,tmap,tidyverse,readr, dplyr, animation)\n```\n:::\n\n\n# 3.0 Importing and Preparing Study Area\n\nIn this exercise, we will use the following datasets:\n\n-   forestfires, a csv file provides locations of forest fire detected from the Moderate Resolution Imaging Spectroradiometer (MODIS) sensor data. The data are downloaded from [Fire Information for Resource Management System](https://firms.modaps.eosdis.nasa.gov/download/). For the purpose of this exercise, only forest fires within Kepulauan Bangka Belitung will be used.\n\n-   Kepulauan_Bangka_Belitung, an ESRI shapefile showing the sub-district (i.e. [kelurahan](https://en.wikipedia.org/wiki/Villages_of_Indonesia)) boundary of Kepulauan Bangka Belitung. The data set was downloaded from [Indonesia Geospatial](https://www.indonesia-geospasial.com/2023/05/download-shapefile-batas-administrasi.html) portal. The original data covers the whole Indonesia. For the purpose of this exercise, only sub-districts within Kepulauan Bangka Belitung are extracted.\n\n## 3.1 Importing study area\n\n## 3.2 Converging to owin object\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
