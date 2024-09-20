@@ -1481,11 +1481,12 @@ for (b in 1:n_batches){
 ## 10.3 Saving Intermediate Datasets:
 
 ```{r}
+#| eval: false
 write_rds(healthcare_sng, "data/rds/healthcare_sng.rds")
 write_rds(quarterly_summary, "data/rds/quarterly_summary.rds")
 write_rds(quarterly_summary_by_state, "data/rds/quarterly_summary_by_state.rds")
 write_rds(state3_sf, "data/rds/state3_sf.rds")
-write_rds(event_density_data, "data/rds/event_density_data.rds.rds")
+write_rds(event_density_data, "data/rds/event_density_data.rds")
 ```
 
 # **11.0 Conclusion**
