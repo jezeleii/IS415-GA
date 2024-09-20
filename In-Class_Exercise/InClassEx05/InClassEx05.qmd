@@ -11,7 +11,7 @@ execute:
 
 # 1.0 Objective & Overview
 
-## Spatial Weights & Applications 
+## Spatial Weights & Applications
 
 -   There can be a lot of robust discussions surrounding statistical analysis of Spatial weights, which assesses the strength of interaction (combined effect of correlation coefficient and weights)
 
@@ -64,7 +64,7 @@ hunan <- st_read(dsn="data/geospatial", layer="Hunan") %>%
 hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
 ```
 
-## 3.3 Performing relational join 
+## 3.3 Performing relational join
 
 The code chunk below will be used to update the attribute table of *hunan*’s SpatialPolygonsDataFrame with the attribute fields of *hunan2012* dataframe. This is performed by using *left_join()* of **dplyr** package.
 
@@ -105,7 +105,7 @@ Useful rmarkdown:
 
 -   #\| echo:false - does not show on the quarto document rendering
 
-## Mapping the GDPC 
+## Mapping the GDPC
 
 Converting to SpatialPolygonDataFrame
 
@@ -114,11 +114,11 @@ hunan_sp <- hunan_sf %>%
   as_Spatial() 
 ```
 
-# Geographically Weighted Summary Statistics with adaptive bandwidth 
+# Geographically Weighted Summary Statistics with adaptive bandwidth
 
-## Determine adaptive bandwidth 
+## Determine adaptive bandwidth
 
-#### AIC 
+#### AIC
 
 ```{r}
 bw_AIC <- bw.gwr(GDPPC ~ 1,  #same value as the GDP Per Capita (Function = 1)
@@ -139,7 +139,7 @@ Unusual cases here:
 
 -   LongLat = T (Great Circle Transformation)
 
-#### Cross Validation 
+#### Cross Validation
 
 ```{r}
 bw_CV <- bw.gwr(GDPPC ~ 1,
@@ -150,7 +150,7 @@ bw_CV <- bw.gwr(GDPPC ~ 1,
                  longlat = T)
 ```
 
-## Fixed bandwidth 
+## Fixed bandwidth
 
 ```{r}
 #| eval: false
@@ -164,7 +164,7 @@ bw_CV <- bw.gwr(GDPPC ~ 1,
 
 You can use fixed bandwidth (change adaptive=TRUE to adaptive=FALSE)
 
-### Computing Geographically Summary statistics 
+### Computing Geographically Summary statistics
 
 ```{r}
 gwstat <- gwss(data = hunan_sp, 
@@ -177,7 +177,7 @@ gwstat <- gwss(data = hunan_sp,
 
 View(gwstat\[\["SDF"\]\]\@data)
 
-### Preparing the output 
+### Preparing the output
 
 ```{r}
 gwstat_df <- as.data.frame(gwstat$SDF)
