@@ -97,7 +97,7 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 
 <h3>Hands-On \n Exercise 04</h3>
 
-<p>Building Block 4: Spatial Point Pattern Analysis</p>
+<p>Building Block 4: Spatial-Temporal Point Pattern Analysis</p>
 
 </div>
 
@@ -117,12 +117,14 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 
 <h3>Hands-On \n Exercise 05</h3>
 
-<p>Building Block 5: Spatial Point Pattern Analysis</p>
+<p>Building Block 5: Network Constrainted Spatial Point Pattern Analysis</p>
 
 </div>
 
 ::: {style="width: 100%"}
 `<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05`">`{=html}
+
+![](images/clipboard-2731376911.png){fig-align="right" width="90%"}
 
 </a>
 :::
