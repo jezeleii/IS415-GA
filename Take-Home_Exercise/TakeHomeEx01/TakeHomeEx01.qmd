@@ -743,13 +743,10 @@ plot(density(armed_clash_myn_ppp.km,
 
 The choice between automatic and adaptive bandwidth depends on the objectives and nature of our analysis.
 
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Fixed Bandwidth                                                                                   | Adaptive Bandwidth                                                                                                                                                     |
-+===================================================================================================+========================================================================================================================================================================+
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Offers Consistency across Space: Uniform smoothing across the entire study area.                  | Varying Spatial Densities: Showing significant differences in conflict event densities (urban, rural ares), adaptive bandwidth could give a more nuanced understanding |
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | General Hotspot Detection: To identify overall hotspots or conflict zones without too much detail | Local Hotspot Detection                                                                                                                                                |
-+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 : 6.2.1 **Computing KDE by using fixed bandwidth**
 
@@ -783,15 +780,11 @@ plot(kde_armed_clash_myn_adaptive)
 
 2.  **Scale of Patterns**: The chosen sigma should be large enough to reveal the relevant spatial patterns without introducing too much noise (from a very small sigma) or losing too much detail (from a very large sigma).
 
-+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Initial Sigma Value (0.07)                                                                                                                                                           |                                                                                                                                                                                                       | Mean Distance (1.6)                                                                                                                                                                                                                                                                                                                                                        |                                                                                                                                                                       |
-+======================================================================================================================================================================================+=======================================================================================================================================================================================================+============================================================================================================================================================================================================================================================================================================================================================================+=======================================================================================================================================================================+
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Advantages                                                                                                                                                                           | Disadvantages                                                                                                                                                                                         | Advantages                                                                                                                                                                                                                                                                                                                                                                 | Disadvantages                                                                                                                                                         |
-+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Captures **local detail**: This smaller sigma will emphasize fine-grained, local patterns, showing small clusters of events that may otherwise be smoothed over with a larger sigma. | **Too small for larger trends**: A sigma of 0.18 may result in overfitting, where the KDE highlights every small cluster or isolated event.                                                           | **Good balance of local and global patterns**: A sigma of 1.6 km (based on average nearest neighbor distance) strikes a balance between capturing local clusters and revealing broader spatial trends. It smooths out small noise while still showing meaningful clusters.                                                                                                 | **Less local detail**: While the 1.6 km sigma is a good balance, it may not capture very small-scale, localized patterns that might be relevant in specific analyses. |
-+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Good for high-detail analysis**: If your goal is to observe very specific spatial variations within each quarter, this smaller sigma might be more suitable.                       | **Difficult for comparisons**: A very small sigma might highlight differences in individual points rather than overall trends, making it harder to compare the general distributions across quarters. | **Better for comparisons**: Since this sigma is derived from the overall spacing of points in your dataset, it reflects a more general spatial structure. This makes it more suitable for **comparing KDE patterns across different quarters**, as it ensures that the bandwidth is appropriate for both sparse and dense data, without overemphasizing small differences. |                                                                                                                                                                       |
-+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Content adapted from Luc Anselin Spatial Econometrics.
 
@@ -1197,6 +1190,18 @@ quarterly_summary_by_state
 ```
 
 ```{r}
+reference_date <- min(armed_clash_sf$event_date, na.rm = TRUE)
+
+armed_clash_year_sf <- armed_clash_sf %>%
+  mutate(dayYear = yday(event_date),  # Day of the year
+         monthNum = month(event_date),  # Numeric month
+         monthFac = month(event_date, label = TRUE, abbr = FALSE),  # Factor for months
+         yearMonth = interval(reference_date, event_date) %/% months(1) + 1) %>%
+  filter(admin1 == "Sagaing")
+armed_clash_year_sf
+```
+
+```{r}
 armed_clash_sagaing <- armed_clash_sf %>% 
   filter(admin1 == "Sagaing")
 ```
@@ -1268,9 +1273,11 @@ plot(F_SNG.csr)
 ### 9.8.1 Computing K-function estimation
 
 ```{r}
-#K_SNG = Kest(armed_clash_sng_ppp, correction = "Ripley")
-#plot(K_SNG, . -r ~ r, ylab= "K(d)-r", xlab = "d(m)")
+#| eval: false
+K_SNG = Kest(armed_clash_sng_ppp, correction = "Ripley")
+plot(K_SNG, . -r ~ r, ylab= "K(d)-r", xlab = "d(m)")
 ```
+![](images/ksng.png)
 
 ### 9.8.2 Performing Complete Spatial Randomness Test
 
@@ -1285,22 +1292,26 @@ The null hypothesis will be rejected if p-value is smaller than alpha value of 0
 Monte Carlo test with K-fucntion
 
 ```{r}
-#K_SNG.csr <- envelope(armed_clash_sng_ppp, Kest, nsim = 30, rank = 1, glocal=TRUE)
+#| eval: false
+K_SNG.csr <- envelope(armed_clash_sng_ppp, Kest, nsim = 30, rank = 1, glocal=TRUE)
 ```
 
 ```{r}
-#plot(K_SNG.csr, . - r ~ r, xlab="d", ylab="K(d)-r")
+#| eval: false
+plot(K_SNG.csr, . - r ~ r, xlab="d", ylab="K(d)-r")
 ```
+![](images/ksngcsr.png)
 
 ## 9.9 **Analysing Spatial Point Process Using L-Function**
 
 ### 9.9.1 Computing L-function estimation
 
 ```{r}
-#L_SNG = Lest(armed_clash_sng_ppp, correction = "Ripley")
-#plot(L_SNG, . -r ~ r, ylab= "L(d)-r", xlab = "d(m)")
+#| eval: false
+L_SNG = Lest(armed_clash_sng_ppp, correction = "Ripley")
+plot(L_SNG, . -r ~ r, ylab= "L(d)-r", xlab = "d(m)")
 ```
-
+![](images/lsng.png)
 ### 9.8.2 Performing Complete Spatial Randomness Test
 
 To confirm the observed spatial patterns above, a hypothesis test will be conducted. The hypothesis and test are as follows:
@@ -1314,13 +1325,15 @@ The null hypothesis will be rejected if p-value is smaller than alpha value of 0
 Monte Carlo test with L-fucntion
 
 ```{r}
-#L_SNG.csr <- envelope(armed_clash_sng_ppp, Lest, nsim = 30, rank = 1, glocal=TRUE)
+#| eval: false
+L_SNG.csr <- envelope(armed_clash_sng_ppp, Lest, nsim = 30, rank = 1, glocal=TRUE)
 ```
 
 ```{r}
-#plot(L_SNG.csr, . - r ~ r, xlab="d", ylab="K(d)-r")
+#| eval: false
+plot(L_SNG.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
-
+![](images/lsngcsr.png)
 # 10. Spatio-Temporal Point Pattern Analysis
 
 ```{r}
@@ -1397,19 +1410,30 @@ Coincidentally (or not), the quarters with the higest number of recorded fatalit
 armed_clash_sagaing
 ```
 
-## 10.2 **Computing STKDE by Day of Year**
+## 10.2 **Computing STKDE by Quarter**
+
+**Creating: Q1 2021 - Q2 2024 using the interval() function**
 
 Because **ppp** object only accept numerical or character as mark. The code chunk below is used to convert data type of *acq_date* to numeric.
 
 ```{r}
-armed_clash_year_sf <- armed_clash_sf %>% 
-  filter(admin1 == "Sagaing") %>% 
-  filter(quarter %in% c("Q4 2021", "Q1 2022", "Q2 2022", "Q3 2022")) %>% 
-  mutate(dayYear = yday(event_date)) %>% 
-  mutate(monthNum = month(event_date)) %>% 
-  mutate(monthFac = month(event_date,
-                          label=TRUE,
-                          abbr=FALSE))
+armed_clash_sf
+```
+
+```{r}
+nrow(armed_clash_sf)
+```
+
+```{r}
+reference_date <- min(armed_clash_sf$event_date, na.rm = TRUE)
+
+armed_clash_year_sf <- armed_clash_sf %>%
+  mutate(quarter = quarter(event_date)) %>%  
+  mutate(year = year(event_date)) %>% 
+  mutate(quarterInterval = (year - 2021) * 4 + quarter) %>%   
+  filter(admin1 == "Sagaing")
+
+
 armed_clash_year_sf
 ```
 
@@ -1418,9 +1442,17 @@ armed_clash_year_sf
 In the code chunk below, dayYear field is included in the output ppp object.
 
 ```{r}
-armed_clash_yday_ppp <- armed_clash_year_sf %>% 
-  dplyr::select(dayYear) %>% 
-  as.ppp()
+summary(armed_clash_year_sf$quarterInterval)
+```
+
+```{r}
+armed_clash_quarter_ppp <- armed_clash_year_sf %>% 
+  dplyr::select(quarterInterval) 
+```
+
+```{r}
+armed_clash_quarter_ppp <- as.ppp(armed_clash_quarter_ppp)
+armed_clash_quarter_ppp
 ```
 
 ### **10.2.2 Including Owin object**
@@ -1428,12 +1460,12 @@ armed_clash_yday_ppp <- armed_clash_year_sf %>%
 Next, code chunk below is used to combine the ppp object and the owin object.
 
 ```{r}
-sagaing_yday_owin <- armed_clash_yday_ppp[sagaing_owin]
-summary(sagaing_yday_owin)
+sagaing_quarter_owin <- armed_clash_quarter_ppp[sagaing_owin]
+summary(sagaing_quarter_owin)
 ```
 
 ```{r}
-plot(sagaing_yday_owin)
+plot(sagaing_quarter_owin)
 ```
 
 Before proceeding, we can utilize `BOOT.spattemp()`. It support bandwidth selection for standalone spatiotemporal density/intensity based on bootstrap estimation of the MISE, providing an isotropic scalar spatial bandwidth and a scalar temporal bandwidth.
@@ -1442,23 +1474,29 @@ Code chunk below uses `BOOT.spattemp()` to determine both the spatial bandwidth 
 
 ```{r}
 set.seed(1234)
-BOOT.spattemp(sagaing_yday_owin)
+BOOT.spattemp_result <- BOOT.spattemp(sagaing_quarter_owin)
+BOOT.spattemp_result
 ```
 
 ```{r}
-kde_yday <- spattemp.density(sagaing_yday_owin,
-                             h=26699.77626,
-                             lambda=69.87568)
-summary(kde_yday)
+kde_quarter <- spattemp.density(sagaing_quarter_owin,
+                             h=BOOT.spattemp_result[1] ,
+                             lambda=BOOT.spattemp_result[2])
+summary(kde_quarter)
 ```
 
 ### 10.2.3 **Plotting the output spatio-temporal KDE**
 
 ```{r}
-tims <- 1:365
+tims <- 1:14
+
+quarter_labels <- c("Q1 2021", "Q2 2021", "Q3 2021", "Q4 2021",
+                    "Q1 2022", "Q2 2022", "Q3 2022", "Q4 2022",
+                    "Q1 2023", "Q2 2023", "Q3 2023", "Q4 2023",
+                    "Q1 2024", "Q2 2024")
 
 n_cols <-4 
-batch_size <- 12
+batch_size <- 2
 n_batches <- ceiling(length(tims)/batch_size)
 
 for (b in 1:n_batches){
@@ -1470,13 +1508,36 @@ for (b in 1:n_batches){
   par(mfrow=c(3,4), mar=c(2,2,2,2))
   
   for(i in current_tims){
-    plot(kde_yday, i,
+    plot(kde_quarter, i,
          override.par=FALSE,
          fix.range=TRUE,
-         main = paste('KDE at Day',i))
+         main = paste(quarter_labels[i]))
   }
 }
 ```
+
+```{r}
+#| eval: false
+temp_gif <- "armed_clash.gif"
+
+# Check if the GIF already exists
+if (!file.exists(temp_gif)) {
+  # If the GIF doesn't exist, create and save it
+  saveGIF({
+    for(i in tims){
+      plot(kde_quarter, i, 
+           override.par=FALSE, 
+           fix.range=TRUE,
+           main=paste('KDE at', quarter_labels[i]))
+    }
+  }, movie.name = temp_gif, interval = 0.01, ani.width=700, ani.height=500)
+} else {
+  # If the GIF already exists, skip the saving process
+  message("GIF already exists, skipping save.")
+}
+```
+
+![](images/armed_clash.gif)
 
 ## 10.3 Saving Intermediate Datasets:
 
