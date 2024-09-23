@@ -1,0 +1,15 @@
+{
+  "hash": "4fa882a422de6c9ed9055bf3710c5201",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"In-class Exercise 06\"\nauthor: \"Jezelei Manangan\"\ndate: \"September 23, 2024\"\ndate-modified: \"last-modified\"\nexecute: \n  eval: true\n  echo: true\n  freeze: true\n---\n\n\n# 1.0 Objective & Overview\n\nBy the end to this hands-on exercise, you will be able to:\n\n-   import geospatial data using appropriate function(s) of **sf** package,\n\n-   import csv file using appropriate function of **readr** package,\n\n-   perform relational join using appropriate join function of **dplyr** package,\n\n-   compute spatial weights using appropriate functions of **spdep** package, and\n\n-   calculate spatially lagged variables using appropriate functions of **spdep** package.\n\n-   GWModel\n\n# 2.0 The Study Area and Data\n\nTwo data sets will be used in this hands-on exercise, they are:\n\n-   Hunan county boundary layer. This is a geospatial data set in ESRI shapefile format.\n\n-   Hunan_2012.csv: This csv file contains selected Hunan’s local development indicators in 2012.\n\nBefore we get started, we need to ensure that **spdep**, **sf**, **tmap** and **tidyverse** packages of R are currently installed in your R.\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel )\n```\n:::\n\n\n# 3.0 Getting the Data into R Environment\n\n## \n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

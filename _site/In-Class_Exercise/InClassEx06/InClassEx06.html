@@ -6,9 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2024-08-18">
+<meta name="author" content="Jezelei Manangan">
+<meta name="dcterms.date" content="2024-09-23">
 
-<title>IS415-GA</title>
+<title>IS415-GA - In-class Exercise 06</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,25 +22,59 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -69,7 +104,7 @@ ul.task-list li input[type="checkbox"] {
 }</script>
 
 
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
 <body class="nav-fixed">
@@ -79,7 +114,7 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">IS415-GA</span>
     </a>
   </div>
@@ -95,43 +130,43 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-hands-on-exercise">    
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex01/Hands-on_Ex01.html">
  <span class="dropdown-text">Hands-on Exercise 1: Geospatial Data Science with R</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex02/Hands-on_Ex02.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex02/Hands-on_Ex02.html">
  <span class="dropdown-text">Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex03/Hands-on_Ex03.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex03/Hands-on_Ex03.html">
  <span class="dropdown-text">Hands-on Exercise 3: 1st &amp; 2nd xOrder Spatial Point Patterns Analysis Methods</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx04/InClassEx04.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx04/InClassEx04.html">
  <span class="dropdown-text">Hands-on Exercise 4: Network Constrained Spatial Point Patterns Analysis</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex05/Hands-on_Ex05.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex05/Hands-on_Ex05.html">
  <span class="dropdown-text">Hands-on Exercise 5: Spatial Weights and Applications</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex06/Hands-on_Ex06.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex06/Hands-on_Ex06.html">
  <span class="dropdown-text">Hands-on Exercise 6: Global &amp; Local Measures of Spatial Autocorrelation</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex07/Hands-on_Ex07.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex07/Hands-on_Ex07.html">
  <span class="dropdown-text">Hands-on Exercise 7:</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex08/Hands-on_Ex08.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex08/Hands-on_Ex08.html">
  <span class="dropdown-text">Hands-on Exercise 8:</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx09/InClassEx09.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx09/InClassEx09.html">
  <span class="dropdown-text">Hands-on Exercise 9:</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Exercise/Hands-on_Ex10/Hands-on_Ex10.html">
+    <a class="dropdown-item" href="../../Hands-on_Exercise/Hands-on_Ex10/Hands-on_Ex10.html">
  <span class="dropdown-text">Hands-on Exercise `10: </span></a>
   </li>  
     </ul>
@@ -142,43 +177,43 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-in-class-exercise">    
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx01/InClassEx01.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx01/InClassEx01.html">
  <span class="dropdown-text">In-class Exercise 1</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx02/InClassEx02.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx02/InClassEx02.html">
  <span class="dropdown-text">In-class Exercise 2</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx03/InClassEx03.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx03/InClassEx03.html">
  <span class="dropdown-text">In-class Exercise 3</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx04/InClassEx04.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx04/InClassEx04.html">
  <span class="dropdown-text">In-class Exercise 4</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx05/InClassEx05.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx05/InClassEx05.html">
  <span class="dropdown-text">In-class Exercise 5</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx06/InClassEx06.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx06/InClassEx06.html">
  <span class="dropdown-text">In-class Exercise 6</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx07/InClassEx07.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx07/InClassEx07.html">
  <span class="dropdown-text">In-class Exercise 7</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx08/InClassEx08.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx08/InClassEx08.html">
  <span class="dropdown-text">In-class Exercise 8</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx09/InClassEx09.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx09/InClassEx09.html">
  <span class="dropdown-text">In-class Exercise 9</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./In-Class_Exercise/InClassEx10/InClassEx10.html">
+    <a class="dropdown-item" href="../../In-Class_Exercise/InClassEx10/InClassEx10.html">
  <span class="dropdown-text">In-class Exercise 10</span></a>
   </li>  
     </ul>
@@ -189,7 +224,7 @@ ul.task-list li input[type="checkbox"] {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-exercise">    
         <li>
-    <a class="dropdown-item" href="./Take-Home_Exercise/TakeHomeEx01/TakeHomeEx01.html">
+    <a class="dropdown-item" href="../../Take-Home_Exercise/TakeHomeEx01/TakeHomeEx01.html">
  <span class="dropdown-text">Take-home Exercise 1</span></a>
   </li>  
     </ul>
@@ -197,11 +232,11 @@ ul.task-list li input[type="checkbox"] {
 </ul>
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
 </ul>
@@ -216,25 +251,42 @@ ul.task-list li input[type="checkbox"] {
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#objective-overview" id="toc-objective-overview" class="nav-link active" data-scroll-target="#objective-overview">1.0 Objective &amp; Overview</a></li>
+  <li><a href="#the-study-area-and-data" id="toc-the-study-area-and-data" class="nav-link" data-scroll-target="#the-study-area-and-data">2.0 The Study Area and Data</a></li>
+  <li><a href="#getting-the-data-into-r-environment" id="toc-getting-the-data-into-r-environment" class="nav-link" data-scroll-target="#getting-the-data-into-r-environment">3.0 Getting the Data into R Environment</a>
+  <ul class="collapse">
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"></a></li>
+  </ul></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">IS415-GA</h1>
+<h1 class="title">In-class Exercise 06</h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jezelei Manangan </p>
+          </div>
+  </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 18, 2024</p>
+      <p class="date">September 23, 2024</p>
     </div>
   </div>
   
@@ -252,143 +304,38 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section style="display: flex; justify-content: space-between; width:100%;">
-  <!-- Column 1 -->
-  <div style="flex: 1; text-align: center; padding: 10px; margin:0;">
-    <img src="headerImages/cover.png" style="max-width: 100%; height: auto;">
-  </div>
-  
-  <!-- Column 2 -->
-  <div style="flex: 1; text-align: left; padding-top: 50px ;">
-    <h1 style="font-weight: bold; color: #1E2A39;">JEZELEI MANANGAN</h1>
-    <p>Penultimate Year, BSc Information Systems SMU</p>
-    <p style="max-width: 600px; font-size:11px">
-      Explore my work and see how I turn complex datasets into actionable insights. Whether you’re interested in GIS, remote sensing, or spatial analysis, you’ll find a collection of projects that demonstrate my skills in R and newfound knowledge in geospatial analytics.
-    </p>
-  </div>
+<section id="objective-overview" class="level1">
+<h1>1.0 Objective &amp; Overview</h1>
+<p>By the end to this hands-on exercise, you will be able to:</p>
+<ul>
+<li><p>import geospatial data using appropriate function(s) of <strong>sf</strong> package,</p></li>
+<li><p>import csv file using appropriate function of <strong>readr</strong> package,</p></li>
+<li><p>perform relational join using appropriate join function of <strong>dplyr</strong> package,</p></li>
+<li><p>compute spatial weights using appropriate functions of <strong>spdep</strong> package, and</p></li>
+<li><p>calculate spatially lagged variables using appropriate functions of <strong>spdep</strong> package.</p></li>
+<li><p>GWModel</p></li>
+</ul>
 </section>
-<hr>
-<div style="display:flex; align-items:center;">
-<div>
-<h3 class="anchored">
-Hands-On Exercise 01
-</h3>
-<p>
-Building Block 1: Geospatial Data Science with R
-</p>
+<section id="the-study-area-and-data" class="level1">
+<h1>2.0 The Study Area and Data</h1>
+<p>Two data sets will be used in this hands-on exercise, they are:</p>
+<ul>
+<li><p>Hunan county boundary layer. This is a geospatial data set in ESRI shapefile format.</p></li>
+<li><p>Hunan_2012.csv: This csv file contains selected Hunan’s local development indicators in 2012.</p></li>
+</ul>
+<p>Before we get started, we need to ensure that <strong>spdep</strong>, <strong>sf</strong>, <strong>tmap</strong> and <strong>tidyverse</strong> packages of R are currently installed in your R.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, spdep, tmap, tidyverse, knitr, GWmodel )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div style="width: 100%">
-<p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex01/hands-on_ex01"></a></p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex01/hands-on_ex01">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="headerImages/Hands-on_Ex01_Header.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="max-  display: block; margin-left:0;;width:90.0%" alt="Hands-on Exercise 1"></p>
-</figure>
-</div>
-</a><p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex01/hands-on_ex01"></a></p>
-</div>
-</div>
-<hr>
-<div style="display:flex; align-items:center;">
-<div>
-<h3 class="anchored">
-Hands-On Exercise 02
-</h3>
-<p>
-Building Block 2: Thematic Mapping &amp; GeoVisualization with R
-</p>
-</div>
-<div style="width: 100%">
-<p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex02"></a></p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex02">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="headerImages/Hands-on_Ex02_Header.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="max-  display: block; margin-left:0;;width:90.0%"></p>
-</figure>
-</div>
-</a><p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex02/hands-on_ex02"></a></p>
-</div>
-</div>
-<hr>
-<div style="display:flex; align-items:center;">
-<div>
-<h3 class="anchored">
-Hands-On Exercise 03
-</h3>
-<p>
-Building Block 3: Spatial Point Pattern Analysis
-</p>
-</div>
-<div style="width: 100%">
-<p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex03/hands-on_ex03"></a></p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex03/hands-on_ex03">
-<div class="quarto-figure quarto-figure-right">
-<figure class="figure">
-<p><img src="headerImages/Hands-on_Ex03_Header.png" class="img-fluid quarto-figure quarto-figure-right figure-img" style="width:90.0%"></p>
-</figure>
-</div>
-</a><p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex03/hands-on_ex03"></a></p>
-</div>
-</div>
-<hr>
-<div style="display:flex; align-items:center;">
-<div>
-<h3 class="anchored">
-Hands-On Exercise 04
-</h3>
-<p>
-Building Block 4: Spatial-Temporal Point Pattern Analysis
-</p>
-</div>
-<div style="width: 100%">
-<p><a href="https://is415-ga-jezelei.netlify.app/In-Class_Exercise/InClassEx04/InClassEx04.html"></a></p><a href="https://is415-ga-jezelei.netlify.app/In-Class_Exercise/InClassEx04/InClassEx04.html">
-<div class="quarto-figure quarto-figure-right">
-<figure class="figure">
-<p><img src="images/Hands-on_Ex04_Header.png" class="img-fluid quarto-figure quarto-figure-right figure-img" style="width:90.0%"></p>
-</figure>
-</div>
-</a><p><a href="https://is415-ga-jezelei.netlify.app/In-Class_Exercise/InClassEx04/InClassEx04.html"></a></p>
-</div>
-</div>
-<hr>
-<div style="display:flex; align-items:center;">
-<div>
-<h3 class="anchored">
-Hands-On Exercise 05
-</h3>
-<p>
-Building Block 5: Spatial Weights and Applications
-</p>
-</div>
-<div style="width: 100%">
-<p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05"></a></p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05">
-<div class="quarto-figure quarto-figure-right">
-<figure class="figure">
-<p><img src="images/clipboard-2731376911.png" class="img-fluid quarto-figure quarto-figure-right figure-img" style="width:90.0%"></p>
-</figure>
-</div>
-</a><p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05"></a></p>
-</div>
-</div>
-<hr>
-<div style="display:flex; align-items:center;">
-<div>
-<h3 class="anchored">
-Hands-On Exercise 06
-</h3>
-<p>
-Building Block 6: Global &amp; Local Measures of Spatial Autocorrelation
-</p>
-</div>
-<div style="width: 100%">
-<p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05"></a></p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05">
-<div class="quarto-figure quarto-figure-right">
-<figure class="figure">
-<p><img src="images/Hands-on_Ex06_Header.png" class="img-fluid quarto-figure quarto-figure-right figure-img" style="width:90.0%"></p>
-</figure>
-</div>
-</a><p><a href="https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05"></a></p>
-</div>
-</div>
+</section>
+<section id="getting-the-data-into-r-environment" class="level1">
+<h1>3.0 Getting the Data into R Environment</h1>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section"></h2>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
