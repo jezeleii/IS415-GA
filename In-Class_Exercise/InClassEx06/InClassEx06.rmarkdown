@@ -9,6 +9,7 @@ execute:
   freeze: true
 ---
 
+
 # 1.0 Objective & Overview
 
 By the end to this in-ckass exercise, you will be able to:
@@ -35,22 +36,27 @@ Two data sets will be used in this hands-on exercise, they are:
 
 Before we get started, we need to ensure that **spdep**, **sf**, **tmap** and **tidyverse** packages of R are currently installed in your R.
 
+
 ```{r}
 pacman::p_load(sf, sfdep, tmap, tidyverse)
 ```
 
+
 ## 2.1 **Import shapefile into R environment**
 
 The code chunk below uses [`st_read()`](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package to import Hunan shapefile into R. The imported shapefile will be **simple features** Object of **sf**.
+
 
 ```{r}
 hunan <- st_read(dsn = "data/geospatial",
                  layer = "Hunan")
 ```
 
+
 ## 2.2 Import csv file into R environment
 
 Next, we will import *Hunan_2012.csv* into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of **readr** package. The output is R data frame class.
+
 
 ```{r}
 hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
@@ -64,9 +70,11 @@ colnames(hunan2012)
 colnames(hunan)
 ```
 
+
 ## 2.3 Performing Relational Join
 
 The code chunk below will be used to update the attribute table of *hunan*’s SpatialPolygonsDataFrame with the attribute fields of *hunan2012* dataframe. This is performed by using [`left_join()`](https://dplyr.tidyverse.org/reference/mutate-joins.html) of **dplyr** package.
+
 
 ```{r}
 hunan_GDPPC <- left_join(hunan,hunan2012) %>% 
@@ -87,9 +95,11 @@ hunan_GDPPC <- left_join(hunan,hunan2012) %>%
 colnames(hunan)
 ```
 
+
 # 3.0 Global Measures of Spatial Autocorrelation
 
 ## 3.1 **Computing Contiguity Spatial Weights**
+
 
 ```{r}
 wm_q <- hunan_GDPPC %>% 
@@ -97,13 +107,17 @@ wm_q <- hunan_GDPPC %>%
          wt = st_weights(nb, style="W"),.before = 1)
 ```
 
+
 \*st_weights provide tree arguments :
+
 
 ```{r}
 wm_q
 ```
 
+
 ## Computing Global Moran'I
+
 
 ```{r}
 moranI <- global_moran(wm_q$GDPPC, 
@@ -113,13 +127,16 @@ moranI <- global_moran(wm_q$GDPPC,
 glimpse(moranI)
 ```
 
+
 ## Performing Global Moran'I test
+
 
 ```{r}
 global_moran_test(wm_q$GDPPC, 
                   wm_q$nb, 
                   wm_q$wt)
 ```
+
 
 -   p-value : smaller than 0.05. There is enough statistical evidence, 95% confident we can reject the null hypothesis where the observed distribution does not conform to the random distribution
 
@@ -130,6 +147,7 @@ global_moran_test(wm_q$GDPPC,
 ## Performing Global Moran'I permutation test
 
 It is always good to use set.seed() before performing simulation. This is to ensure reproducible computation. You can initialize this from the start
+
 
 ```{r}
 set.seed(1234)
@@ -142,6 +160,7 @@ global_moran_perm(wm_q$GDPPC,
                 nsim = 99)
 ```
 
+
 -   n=99sim == 100 iterations.
 
 -   The result will be the same.
@@ -152,6 +171,7 @@ global_moran_perm(wm_q$GDPPC,
 
 ## Computing Local Moran'I
 
+
 ```{r}
 lisa <- wm_q %>% 
   mutate(local_moran = local_moran(
@@ -159,6 +179,7 @@ lisa <- wm_q %>%
     .before = 1) %>% 
   unnest(local_moran)
 ```
+
 
 Unnest() to put back into 1 single tibble table ( 1 - Many ) – You want to make it to one single table, without it, it can't be seen as a data frame
 
@@ -194,6 +215,7 @@ MEAN, MEDIAN, PYSAL
 
 ## Visualizing local Moran's I
 
+
 ```{r}
 tmap_mode('plot')
 map1 <- tm_shape(lisa) + 
@@ -207,7 +229,9 @@ map1 <- tm_shape(lisa) +
 map1
 ```
 
+
 ## Visualizing p-value of local Moran's I
+
 
 ```{r}
 tmap_mode('plot')
@@ -222,16 +246,20 @@ map2 <- tm_shape(lisa) +
 map2
 ```
 
+
 Notice that the p value is all over the place, **ideally you need to scale it**
 
 ## Visualizing local Moran's I and p-value
+
 
 ```{r}
 tmap_mode('plot')
 tmap_arrange(map1, map2, ncol=2)
 ```
 
+
 ## Visualizing LISA Map 
+
 
 ```{r}
 lisa_sig <- lisa %>% 
@@ -246,13 +274,16 @@ tmap_mode("plot") +
   tm_borders(alpha = 0.5)
 ```
 
+
 \*Take note: There is a p-value filter there
 
 -   purple - Low GDP area surrounded by high GDP area.
 
+
 ```{=html}
 <!-- -->
 ```
+
 -   Only see this because the rest are not statistically significant
 
 -   Area located near the province and the city - high growth area (Tiering of the Province; Ladder development)
@@ -260,6 +291,7 @@ tmap_mode("plot") +
 -   Growth spread from the capital (can explore factors accounting for this development)
 
 ## Compute local Gi\* statistics
+
 
 ```{r}
 wm_idw <- hunan_GDPPC %>% 
@@ -270,7 +302,9 @@ wm_idw <- hunan_GDPPC %>%
          .before =1)
 ```
 
+
 -   The wrapper - the one without the \* (will exclude away the self item)
+
 
 ```{r}
 HCSA <- wm_idw %>% 
@@ -280,6 +314,7 @@ HCSA <- wm_idw %>%
   unnest(local_Gi)
 HCSA
 ```
+
 
 HCSA
 
@@ -293,6 +328,7 @@ Gi\* - Hot Spot & Cold Spot
 
 ## Visualizing GI\* - Hot Spot & Cold Spot
 
+
 ```{r}
 tm_shape(HCSA) + 
   tm_fill("gi_star") + 
@@ -300,7 +336,9 @@ tm_shape(HCSA) +
   tm_view(set.zoom.limits=c(6,8))
 ```
 
+
 ## p-value
+
 
 ```{r}
 HCSA_sig <- HCSA %>% 
@@ -316,9 +354,11 @@ tm_shape(HCSA_sig) +
   tm_borders(alpha=0.4)
 ```
 
+
 -   Can replace gi_star with cluster to visualize the clusters
 
 -   By right, you should map it back to the label
+
 
 ```{r}
 HCSA_sig <- HCSA %>% 
@@ -333,3 +373,4 @@ tm_shape(HCSA_sig) +
   tm_fill("cluster") + 
   tm_borders(alpha=0.4)
 ```
+
