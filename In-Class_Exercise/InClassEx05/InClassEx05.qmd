@@ -15,8 +15,6 @@ execute:
 
 -   There can be a lot of robust discussions surrounding statistical analysis of Spatial weights, which assesses the strength of interaction (combined effect of correlation coefficient and weights)
 
-# 1.0 Objective & Overview
-
 By the end to this hands-on exercise, you will be able to:
 
 -   import geospatial data using appropriate function(s) of **sf** package,
@@ -195,7 +193,7 @@ What is the difference between these neighbours and the sp data
 
 Based on the output, there is no unique identifier for the data
 
-## Visualising geographically weighted summary statistic
+## Visualizing geographically weighted summary statistic
 
 ```{r}
 tm_shape(hunan_gstat) + 

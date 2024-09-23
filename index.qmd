@@ -142,7 +142,7 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 </div>
 
 ::: {style="width: 100%"}
-`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex05/hands-on_ex05`">`{=html}
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex06/hands-on_ex06`">`{=html}
 
 ![](images/Hands-on_Ex06_Header.png){fig-align="right" width="90%"}
 
