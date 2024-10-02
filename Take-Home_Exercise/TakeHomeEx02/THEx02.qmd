@@ -1,0 +1,476 @@
+---
+title: "TakeHome Exercise 2: Drug Abuse in Thailand"
+date: "September 27, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
+---
+
+# 1.0 Objectives & Overview
+
+In this Take-Home Exercise 2, we will focus on the Drug Abuse in Thailand, specifically on the indicators available in the sourced datasets and :
+
+-   if the key indicators of drug abuse of Thailand are independent from space.
+
+-   If the indicators of drug abuse is indeed spatial dependent, then, we focus our investigation on where the clusters and outliers are detected.
+
+-   Last but not least, we are also interested to investigate how the observation above evolve over time.
+
+Based on the context provided, these are the tasks this assignment aims to address:
+
+-   Using appropriate function of **sf** and **tidyverse**, preparing the following geospatial data layer:
+
+    -   a study area layer in sf polygon features. It must be at [province level](https://en.wikipedia.org/wiki/Provinces_of_Thailand) (including Bangkok) of Thailand.
+
+    -   a drug abuse indicators layer within the study area in sf polygon features.
+
+-   Using the extracted data, perform global spatial autocorrelation analysis by using [sfdep methods](https://is415-gaa-tskam.netlify.app/in-class_ex/in-class_ex05/in-class_ex05-glsa).
+
+-   Using the extracted data, perform local spatial autocorrelation analysis by using [sfdep methods](https://r4gdsa.netlify.app/chap10.html).
+
+-   Describe the spatial patterns revealed by the analysis above.
+
+```{r}
+pacman::p_load(sf, spdep, sfdep, tmap, tidyverse, knitr, arrow, readxl, dplyr)
+```
+
+## 1.1 The Study Area and Data
+
+For the purpose of this take-home exercise, two data sets shall be used, they are:
+
+-   [Thailand Drug Offenses \[2017-2022\]](https://www.kaggle.com/datasets/thaweewatboy/thailand-drug-offenses-2017-2022) at Kaggle.
+
+-   [Thailand - Subnational Administrative Boundaries](https://data.humdata.org/dataset/cod-ab-tha?) at HDX. You are required to use the province boundary data set.
+
+For additional context, these are some interesting points to note about the Drug Abuse situation in Thailand within the last decade with its reputation as Southeast Asia's '**Narcotics Hub, most affected by drug abuse in the Region'** (Anadolu Ajansi - Thailand's National Paper).
+
+1.  This arises due to several factors, but the most commonly cited is the **proximity to the largest drug production and trafficking area, a.k.a 'Golden Triangle'. (Windle et al.)** Additionally, this paper explores the modus operandi of Drug syndicates, who exploit Thailand's porous borders and extensive transportation infrastructure to traffic drugs both within the country and internationally.
+2.  **E-commerce**: The growth of online marketplaces and the use of parcel delivery systems for drug transactions have made it more difficult to control the spread of illegal drugs (Thailand Country Report UN 2023)
+3.  **Worsening Socio-Economic Conditions in** recent years, especially post COVID-19, has increased the demand for cheap drugs which are becoming more and more accessible due to the growth of distributed networks within and outside of Thailand, coupled with the growth in supply due to the emergence of **synthetic variants.** ([UN Office of Drugs and Crime](https://www.unodc.org/roseap/uploads/documents/Publications/2023/Synthetic_Drugs_in_East_and_Southeast_Asia_2023.pdf))
+4.  Despite strict regulations and a crackdown on drugs in the country, policies have been criticised to have traditionally focused on law enforcement rather than harms reduction, often to the detriment of public health. The call for [**compassionate care**](https://www.unaids.org/en/resources/presscentre/featurestories/2023/june/20230626_people-who-use-drugs-thailand) **for rehabilitating drug abuse users** call for further action to address underlying causes, one of which is the reduction of needle sharing in overcrowded prisons which also may lead to transmission of diseases such as HIV(UNAIDS).
+5.  Despite efforts to suppress drug cultivation, Thailand remains a significant hub for trafficking and faces ongoing challenges in addressing the complex socio-economic and health impacts of drug abuse.
+
+> Thailand has been facing the problem of being the illicit drug markets and trafficking routes from the Golden Triangle area. A large amount of Methamphetamine tablets (Yaba), crystal methamphetamine (Ice), heroin, ketamine, and cannabis are found being imported to Thailand. Northern and Northeastern border areas remained the main drug trafficking routes from the production sites in the Golden Triangle while some were smuggled through the Western border areas.
+>
+> Those drugs were transported to be kept in the central region, particularly Bangkok, before trafficking to the southern region of Thailand
+>
+> *ASEAN Drug Monitoring Report 2022*
+
+As mentioned earlier, Drug Law Enforecement is a key priority in the country, where the government employs (1) Drug Interdiction and (2) Drug Syndicate Suppression.
+
+![The arrested drug cases and drug offenders in Thailand during 2018 - 2022](images/thailandArrest.png){fig-align="center" width="100%"}
+
+The image above (Figure 1) depicts the Arrested Drug Cases and Drug Offenders in Thailand during 2018 - 2022 . We can thus subset our analysis later on into years of 2020 and 2021.
+
+## 1.2 Getting the Data into R Environment
+
+### 1.2.1 Thailand Drug Offenses \[2017 - 2022\] - Kaggle (Aspatial Data)
+
+```{r}
+drug_offenses <- read_parquet("data/aspatial/thai_drug_offenses_2017_2022.parquet") 
+```
+
+```{r}
+summary(drug_offenses)
+```
+
+### 1.2.2 Thailand - Subnational Administrative Boundaries at HDX (Spatial Data)
+
+-   Thailand administrative level 0 (country), 1 (province), 2 (district), and 3 (sub-district, tambon) boundaries. We will use admin1 - Province Level Boundary
+
+```{r}
+thailand_sf <- st_read(dsn = "data/geospatial", layer="tha_admbnda_adm1_rtsd_20220121") %>% 
+  st_transform(crs = 32648) %>% 
+  select(ADM1_EN, geometry)
+```
+
+We will verify the coordinate reference systems of the Thailand object to ensure the assignment of the correct CRS value. We will go with UTM Zone 48N (EPSG: 32648), as this projection covers most of Thailand and works best for national-scale projects.
+
+```{r}
+st_crs(thailand_sf)
+```
+
+```{r}
+head(thailand_sf)
+```
+
+#### 1.2.2.1 Multipolygon to Polygon
+
+As observed from the HDX dataset, it uses multipolygon geometries. For spatial autocorrelation this may pose a problem in that the calculation of the centroid for a `MULTIPOLYGON` geometry may result in a point that lies outside the area of interest, such as in the sea or another inappropriate location.
+
+This happens because the centroid is calculated based on the combined geometry of all constituent polygons, which can be spread across multiple, disjoint regions. Such misplaced centroids can distort spatial relationships and affect the accuracy of spatial autocorrelation analysis, leading to misleading interpretations of the data.
+
+To mitigate this issue, converting `MULTIPOLYGON` geometries to `POLYGON` or selecting a representative polygon can ensure centroids are more accurately placed within each region, improving the reliability of spatial analysis.
+
+1.  We use the `st_cast()`to break up the data into individual polygons
+2.  Calculate the area of each individual polygon and create a new column Shape_Area_Polygon
+3.  We keep the polygon relating to the corresponding shape_area
+4.  Resultant dataset will have POLYGON geometries
+
+```{r}
+thailand_sf <- st_cast(thailand_sf, "POLYGON")
+
+thailand_sf <- thailand_sf %>% 
+  mutate(Shape_Area_Polygon = st_area(geometry) / 1e6) %>%  
+  group_by(ADM1_EN) %>%                                
+  slice_max(order_by = Shape_Area_Polygon, n = 1) %>%  
+  ungroup()  
+
+head(thailand_sf)
+```
+
+### 1.2.3 Thailand Population Dataset from HDX (2023)
+
+To obtain only relevant data, we filter it down to ADM1_EN, T_TL (Total Population within the Province)
+
+```{r}
+population_sf <- read_csv("data/aspatial/tha_admpop_adm1_2023.csv") %>% 
+  select(ADM1_EN, T_TL)
+colnames(population_sf)
+```
+
+We perform a relational join for the Thailand Population Dataset and Thailand Boundary Dataset, which will aid in subsequent analysis. Because they are both from HDX, data inconsistency is less likely to occur:
+
+```{r}
+thailand_population_sf <- thailand_sf %>% 
+  left_join(population_sf, by="ADM1_EN")
+```
+
+```{r}
+head(thailand_population_sf)
+```
+
+## 1.3 Data Cleaning
+
+### 1.3.1 Fuzzy Matching - Name Matching
+
+After inspecting the 2 dataests, we see we can potentially perform a relational join using the Province Names (in English). However we have to check and ensure the names match up to perform a 1-1 mapping, and avoid the potential erroneous loss of data.
+
+In the code chunk below, we cleanse the province names for the datasets:
+
+```{r}
+clean_names <- function(column) {
+  gsub("\\s+", " ", trimws(column))
+}
+
+drug_offenses$province_en <- clean_names(drug_offenses$province_en)
+thailand_population_sf$ADM1_EN <- clean_names(thailand_population_sf$ADM1_EN)
+
+prov_not_in_thai_sf <- setdiff(unique(drug_offenses$province_en), unique(thailand_population_sf$ADM1_EN))
+prov_not_in_offenses_sf <- setdiff(unique(thailand_population_sf$ADM1_EN), unique(drug_offenses$province_en))
+
+# Create a lookup table for mismatched names
+lookup <- data.frame(
+  province_en = prov_not_in_thai_sf,
+  correct_province = prov_not_in_offenses_sf
+)
+
+# Replace mismatched province names 
+drug_offenses <- drug_offenses %>%
+  left_join(lookup, by = "province_en") %>%
+  mutate(province_en = coalesce(correct_province, province_en)) %>%
+  select(-correct_province)
+
+lookup
+```
+
+-   `setdiff()` function is used to perform an exact match.
+
+-   Because it does not account for whitespace, I used the `trimws()` function to see if there are potential names missed out due to mismatches.
+
+The code chunk above follows the naming convention done in the Thailand dataset, because it follows HDX dataset cleaning practices. It performs a relational join and replaces mismatched names. We keep the original if no match is found in the lookup data frame and remove the temporary replacement column at the end
+
+```{r}
+unique(drug_offenses$province_en)
+```
+
+As we are investigating indicators of drug abuse, we can drop columns with 'suspects_in' for the different cases since they are more of an indicator for law enforcement, rather than the socio-cultural and health aspects that may be more relevant.
+
+```{r}
+drug_offenses <- drug_offenses %>%
+  filter(!grepl("^suspects_in", types_of_drug_offenses)) %>% 
+  select(-province_th)
+```
+
+```{r}
+unique(drug_offenses$types_of_drug_offenses)
+```
+
+By performing EDA on the yearly data, we first aggregate the number of cases per indicator by year:
+
+```{r}
+yearly_statistics <- drug_offenses %>% 
+  group_by(fiscal_year, types_of_drug_offenses) %>% 
+  summarize(total_cases = sum(no_cases, na.rm=TRUE)) %>% 
+  pivot_wider(
+    names_from = types_of_drug_offenses, 
+    values_from = total_cases
+  ) %>% 
+  ungroup()
+
+total_cases_per_type <- yearly_statistics %>% 
+  select(-fiscal_year) %>% 
+  summarize(across(everything(), sum, na.rm=TRUE))
+
+total_cases_all <- sum(total_cases_per_type)
+
+proportion_cases <- total_cases_per_type / total_cases_all * 100 
+
+proportion_cases <- proportion_cases %>% 
+  pivot_longer(cols = everything(), 
+               names_to = "types_of_drug_offenses", 
+               values_to = "proportion") %>% 
+  arrange(desc(proportion))
+
+proportion_cases
+```
+
+### 1.3.3 Visualizing Proportion of Cases in Thailand
+
+```{r}
+ggplot(proportion_cases, aes(x = reorder(types_of_drug_offenses, proportion), y = proportion)) +
+  geom_col(fill = "red") +
+  geom_text(aes(label = round(proportion,1), hjust = -0.1)) + 
+  coord_flip() +  # Flip coordinates to have horizontal bars
+  labs(
+    title = "Proportion of Total Drug Offense (Cases Over 5 Years)2017 - 2022) ",
+    x = "Types of Drug Offenses",
+    y = "Proportion (%)"
+  ) +
+  theme_minimal() +
+  ylim(0, max(proportion_cases$proportion) + 10)
+  
+
+```
+
+Lastly, based on yearly statistics, we aggregate data by focusing on these offense types:
+
+1.  Drug Use Cases
+2.  Possession with Intent to Distribute
+3.  Trafficking
+
+```{r}
+drug_offenses <- drug_offenses %>% 
+  filter(types_of_drug_offenses %in% c("drug_use_cases", "possession_with_intent_to_distribute_cases", "trafficking_cases")) %>%
+  pivot_wider(
+    names_from = types_of_drug_offenses, 
+    values_from = no_cases
+  ) %>% 
+  ungroup() 
+
+head(drug_offenses)
+```
+
+```{r}
+drug_use_cases_offenses <- drug_offenses %>% 
+  select(1:3) %>% 
+  mutate(types_of_drug_offenses = "drug_use_cases")
+
+possession_with_intent_to_distribute_offenses <- drug_offenses %>% 
+  select(1:2, 4) %>% 
+  mutate(types_of_drug_offenses = "possession_with_intent_to_distribute_cases")
+
+trafficking_offenses <- drug_offenses %>% 
+  select(1:2, 5) %>% 
+  mutate(types_of_drug_offenses = "trafficking_cases")
+```
+
+```{r}
+drug_use_cases_offenses <- drug_use_cases_offenses %>% 
+  pivot_wider(
+    names_from = fiscal_year, 
+    values_from = drug_use_cases
+  )
+
+possession_with_intent_to_distribute_cases_offenses <- possession_with_intent_to_distribute_offenses %>% 
+  pivot_wider(
+    names_from = fiscal_year, 
+    values_from = possession_with_intent_to_distribute_cases
+  )
+
+trafficking_cases_offenses <- trafficking_offenses %>% 
+  pivot_wider(
+    names_from = fiscal_year, 
+    values_from = trafficking_cases
+  )
+```
+
+```{r}
+possession_with_intent_to_distribute_cases_offenses
+```
+
+```{r}
+trafficking_cases_offenses
+```
+
+```{r}
+thailand_population_sf
+```
+
+## 1.4 Performing Relational Join
+
+We check for duplicates before joining:
+
+```{r}
+duplicated_rows <- drug_offenses[duplicated(drug_offenses), ]
+duplicated_rows
+```
+
+```{r}
+thai_drug_use_sf <- drug_use_cases_offenses %>% 
+  left_join(thailand_population_sf, by = c("province_en" = "ADM1_EN")) %>% 
+  st_as_sf()
+```
+
+```{r}
+thai_possession_with_intent_to_distribute_sf <- possession_with_intent_to_distribute_cases_offenses %>% 
+  left_join(thailand_population_sf, by = c("province_en" = "ADM1_EN")) %>% 
+  st_as_sf()
+```
+
+```{r}
+thai_trafficking_sf <- trafficking_cases_offenses %>% 
+  left_join(thailand_population_sf, by = c("province_en" = "ADM1_EN")) %>% 
+  st_as_sf()
+```
+
+We save the cleaned dataset in rds:
+
+```{r}
+#| eval:false
+write_rds(thai_drug_use_sf, "data/rds/thai_drug_use_sf.rds")
+write_rds(thai_possession_with_intent_to_distribute_sf, "data/rds/thai_possession_with_intent_to_distribute_sf.rds")
+write_rds(thai_trafficking_sf, "data/rds/thai_trafficking_sf.rds")
+```
+
+```{r}
+thai_drug_use_sf <- read_rds("data/rds/thai_drug_use_sf.rds") %>% 
+  st_transform(crs = 32648)
+
+thai_possession_intent_sf <- read_rds("data/rds/thai_possession_with_intent_to_distribute_sf.rds") %>% 
+  st_transform(crs = 32648)
+
+thai_trafficking_sf <- read_rds("data/rds/thai_trafficking_sf.rds") %>% 
+  st_transform(crs = 32648)
+```
+
+# 2.0 Visualizing Drug Abuse Indicators
+
+We first focus on Drug Use Cases in Thailand, deriving the Drug Use Per Capita using the population dataset from HDX:
+
+A key limitation to consider is that the population count is 2023 data, and does not account for temporal variations from 2017 - 2022 which the drug_offenses data spans.
+
+```{r}
+thai_drug_use_sf <- thai_drug_use_sf %>% rename(population_count = T_TL)
+```
+
+```{r}
+thai_drug_use_sf <- thai_drug_use_sf %>% 
+  mutate(
+    drug_use_per_capita_2017 = `2017` / population_count,
+    drug_use_per_capita_2018 = `2018` / population_count,
+    drug_use_per_capita_2019 = `2019` / population_count,
+    drug_use_per_capita_2020 = `2020` / population_count,
+    drug_use_per_capita_2021 = `2021` / population_count,
+    drug_use_per_capita_2022 = `2022` / population_count
+  )
+```
+
+```{r}
+tmap_mode('plot')
+
+tm_shape(thai_drug_use_sf) + 
+  tm_polygons()
+```
+
+# 3.0 Computing Contiguity Spatial Weights
+
+## 3.1 Computing QUEEEN Contiguity Based Neighbours
+
+## 3.2 Creating ROOK Contiguity Based Neighbours
+
+## 3.3 VIsualizing Contiguity Weights
+
+# 4.0 Computing Distance Based Neighbours
+
+## 4.1 Determine the cut-off distance
+
+## 4.2 Computing fixed distance weight Matrix
+
+## 4.3 Visualizing Contiguity Weights
+
+# 5.0 Weights based on IDW
+
+# 6.0 Row-standardized Weights Matrix
+
+# 7.0 Application of Spatial Weight Matrix
+
+## 7.1 Spatial Lag with row-standardized weights
+
+## 7.2 Spatial Lag as a sum of neighbouring values
+
+## 7.3 Spatial Window Average
+
+## 7.4 Spatial Window Sum
+
+# PART II : Global Measures of Spatial Autocorrelation
+
+# 8.0 Global Measures of Spatial Autocorrelation: Moran's I
+
+## 8.1 Moran's I Test
+
+## 8.2 Computing Monte Carlo Moran's I
+
+## 8.3 Visualizing Monte Carlo Moran's i
+
+# 9.0 Global Measures of Spatial Autocorrelation: Geary's C
+
+## 9.1 Geary's C Test
+
+## 9.2 Computing Monte Carlo Geary's C
+
+## 9.3 Visualizing Monte Carlo Geary's C
+
+# 10.0 Spatial Correlogram
+
+## 10.1 Compute Moran's I Correlogram
+
+## 10.2 Compute Geary's C Correlogram and Plot
+
+# PART III : Local Measures of Spatial Autocorrelation
+
+# 11.0 Local Indicators of Spatial Association (LISA)
+
+## 11.1 Computing Local Moran's I
+
+## 11.2 Computing Local Geary's C
+
+# 12.0 Creating a LISA Cluster Map
+
+## 12.1 Plotting Moran scatterplot
+
+## 12.2 Plotting Moran scatterplot with standardised variable
+
+## 12.3 Preparing LISA map classes
+
+## 12.4 Plotting LISA map
+
+# OPTIONAL
+
+# X.0 Hot Spot and Cold Spot Area Analysis
+
+## X.1 Deriving distance-based weight matrix
+
+## X.2 Computing adaptive distance weight matrix
+
+# X.0 Computing Gi statistics
+
+# X. Conclusion & Summary
+
+# X. References
+
+### APA Citation:
+
+Windle, J. (2016). Drugs and drug policy in Thailand. *University of East London*. Retrieved from <https://www.state.gov/>
