@@ -56,7 +56,7 @@ website:
         menu: 
           - text: "Take-home Exercise 1"
             href: "Take-Home_Exercise/TakeHomeEx01/TakeHomeEx01.html"
-          - text: "Take-home Exercise 1"
+          - text: "Take-home Exercise 2"
             href: "Take-Home_Exercise/TakeHomeEx02/TakeHomeEx02.html"
         
     right: 
