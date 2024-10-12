@@ -21,7 +21,7 @@ website:
             href: "Hands-on_Exercise/Hands-on_Ex06/Hands-on_Ex06.html"
           - text: "Hands-on Exercise 7:"
             href: "https://jezeleii.shinyapps.io/GAShiny/"
-          - text: "Hands-on Exercise 8: "
+          - text: "Hands-on Exercise 8: Geographical Segmentation with Spatially Constrained Clustering Techniques"
             href: "Hands-on_Exercise/Hands-on_Ex08/Hands-on_Ex08.html"
           - text: "Hands-on Exercise 9: "
             href: "In-Class_Exercise/InClassEx09/InClassEx09.html"
@@ -56,6 +56,8 @@ website:
         menu: 
           - text: "Take-home Exercise 1"
             href: "Take-Home_Exercise/TakeHomeEx01/TakeHomeEx01.html"
+          - text: "Take-home Exercise 1"
+            href: "Take-Home_Exercise/TakeHomeEx02/TakeHomeEx02.html"
         
     right: 
       - href: index.qmd

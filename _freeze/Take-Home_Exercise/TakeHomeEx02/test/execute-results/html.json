@@ -1,0 +1,15 @@
+{
+  "hash": "491ce557a74581f2287cd38b431bdbaa",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"TakeHome Exercise 2: Drug Abuse in Thailand\"\ndate: \"September 27, 2024\"\ndate-modified: \"last-modified\"\nexecute: \n  eval: true\n  echo: true\n  freeze: true\n---\n\n\n::: {.panel-tabset}\n\n### Test 1\n\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# R filler code for Test 1\nx <- rnorm(10)\nmean(x)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n[1] -0.4377636\n```\n\n\n:::\n\n```{.r .cell-code}\nsummary(x)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\n   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. \n-1.6882 -0.9259 -0.8102 -0.4378  0.3338  0.9812 \n```\n\n\n:::\n:::\n\n\n\n### Test 2\n\n:::",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

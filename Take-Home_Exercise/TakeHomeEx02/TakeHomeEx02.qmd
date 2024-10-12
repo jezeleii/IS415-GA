@@ -33,7 +33,13 @@ Based on the context provided, these are the tasks this assignment aims to addre
 -   Describe the spatial patterns revealed by the analysis above.
 
 ```{r}
-pacman::p_load(sf, spdep, sfdep, tmap, tidyverse, knitr, arrow, readxl, dplyr)
+pacman::p_load(sf, spdep, sfdep, tmap, tidyverse, knitr, arrow, readxl, dplyr, patchwork, Kendall)
+```
+
+The code chunk below runs set.seed(), to ensure random operations in this take home exercise will produce the same results each time we run the code, helping ensure reproducibility
+
+```{r}
+set.seed(1234)
 ```
 
 ## 1.1 The Study Area and Data
@@ -60,7 +66,7 @@ For additional context, these are some interesting points to note about the Drug
 
 As mentioned earlier, Drug Law Enforecement is a key priority in the country, where the government employs (1) Drug Interdiction and (2) Drug Syndicate Suppression.
 
-![The arrested drug cases and drug offenders in Thailand during 2018 - 2022](images/thailandArrest.png){fig-align="center" width="100%"}
+![Fig 1: The arrested drug cases and drug offenders in Thailand during 2018 - 2022](images/thailandArrests.png){fig-align="center" width="100%"}
 
 The image above (Figure 1) depicts the Arrested Drug Cases and Drug Offenders in Thailand during 2018 - 2022 . We can thus subset our analysis later on into years of 2020 and 2021.
 
@@ -72,18 +78,14 @@ The image above (Figure 1) depicts the Arrested Drug Cases and Drug Offenders in
 drug_offenses <- read_parquet("data/aspatial/thai_drug_offenses_2017_2022.parquet") 
 ```
 
-```{r}
-summary(drug_offenses)
-```
-
 ### 1.2.2 Thailand - Subnational Administrative Boundaries at HDX (Spatial Data)
 
 -   Thailand administrative level 0 (country), 1 (province), 2 (district), and 3 (sub-district, tambon) boundaries. We will use admin1 - Province Level Boundary
 
 ```{r}
 thailand_sf <- st_read(dsn = "data/geospatial", layer="tha_admbnda_adm1_rtsd_20220121") %>% 
-  st_transform(crs = 32648) %>% 
-  select(ADM1_EN, geometry)
+  select(ADM1_EN, geometry) %>% 
+  st_transform(crs = 32648)
 ```
 
 We will verify the coordinate reference systems of the Thailand object to ensure the assignment of the correct CRS value. We will go with UTM Zone 48N (EPSG: 32648), as this projection covers most of Thailand and works best for national-scale projects.
@@ -96,7 +98,7 @@ st_crs(thailand_sf)
 head(thailand_sf)
 ```
 
-#### 1.2.2.1 Multipolygon to Polygon 
+#### 1.2.2.1 Multipolygon to Polygon
 
 As observed from the HDX dataset, it uses multipolygon geometries. For spatial autocorrelation this may pose a problem in that the calculation of the centroid for a `MULTIPOLYGON` geometry may result in a point that lies outside the area of interest, such as in the sea or another inappropriate location.
 
@@ -110,24 +112,25 @@ To mitigate this issue, converting `MULTIPOLYGON` geometries to `POLYGON` or sel
 4.  Resultant dataset will have POLYGON geometries
 
 ```{r}
-thailand_sf <- st_cast(thailand_sf, "POLYGON")
+thailand_sf <- thailand_sf %>%
+  st_cast("POLYGON") %>%
+  group_by(ADM1_EN) %>%
+  summarise(geometry = st_union(geometry)) %>%
+  ungroup()
 
-thailand_sf <- thailand_sf %>% 
-  mutate(Shape_Area_Polygon = st_area(geometry) / 1e6) %>%  
-  group_by(ADM1_EN) %>%                                
-  slice_max(order_by = Shape_Area_Polygon, n = 1) %>%  
-  ungroup()  
+thailand_sf <- thailand_sf %>%
+  mutate(Shape_Area_Polygon = st_area(geometry) / 1e6)
 
 head(thailand_sf)
 ```
 
-### 1.2.3 Thailand Population Dataset from HDX (2023) 
+### 1.2.3 Thailand Population Dataset from HDX (2023)
 
-To obtain only relevant data, we filter it down to ADM1_EN, T_TL (Total Population within the Province)
+To obtain only relevant data, we filter it down to ADM1_EN, T_TL, ADM1_PCODE(Total Population within the Province)
 
 ```{r}
 population_sf <- read_csv("data/aspatial/tha_admpop_adm1_2023.csv") %>% 
-  select(ADM1_EN, T_TL)
+  select(ADM1_EN, T_TL, ADM1_PCODE)
 colnames(population_sf)
 ```
 
@@ -151,27 +154,22 @@ After inspecting the 2 dataests, we see we can potentially perform a relational 
 In the code chunk below, we cleanse the province names for the datasets:
 
 ```{r}
-# Clean province names in both datasets
 clean_names <- function(column) {
   gsub("\\s+", " ", trimws(column))
 }
 
-# Apply clean_names to each value in the columns
 drug_offenses$province_en <- clean_names(drug_offenses$province_en)
 thailand_population_sf$ADM1_EN <- clean_names(thailand_population_sf$ADM1_EN)
 
-# Identify mismatched province names
 prov_not_in_thai_sf <- setdiff(unique(drug_offenses$province_en), unique(thailand_population_sf$ADM1_EN))
 prov_not_in_offenses_sf <- setdiff(unique(thailand_population_sf$ADM1_EN), unique(drug_offenses$province_en))
 
 # Create a lookup table for mismatched names
-# Ensure that you manually verify if these mismatched names map correctly
 lookup <- data.frame(
   province_en = prov_not_in_thai_sf,
   correct_province = prov_not_in_offenses_sf
 )
 
-# Replace mismatched province names in drug_offenses using the lookup table
 drug_offenses <- drug_offenses %>%
   left_join(lookup, by = "province_en") %>%
   mutate(province_en = coalesce(correct_province, province_en)) %>%
@@ -222,19 +220,19 @@ total_cases_all <- sum(total_cases_per_type)
 
 proportion_cases <- total_cases_per_type / total_cases_all * 100 
 
-proportion_cases_long <- proportion_cases %>% 
+proportion_cases <- proportion_cases %>% 
   pivot_longer(cols = everything(), 
                names_to = "types_of_drug_offenses", 
                values_to = "proportion") %>% 
   arrange(desc(proportion))
 
-proportion_cases_long
+proportion_cases
 ```
 
-### 1.3.3 Visualizing Proportion of Cases in Thailand 
+### 1.3.3 Visualizing Proportion of Cases in Thailand
 
 ```{r}
-ggplot(proportion_cases_long, aes(x = reorder(types_of_drug_offenses, proportion), y = proportion)) +
+ggplot(proportion_cases, aes(x = reorder(types_of_drug_offenses, proportion), y = proportion)) +
   geom_col(fill = "red") +
   geom_text(aes(label = round(proportion,1), hjust = -0.1)) + 
   coord_flip() +  # Flip coordinates to have horizontal bars
@@ -244,20 +242,19 @@ ggplot(proportion_cases_long, aes(x = reorder(types_of_drug_offenses, proportion
     y = "Proportion (%)"
   ) +
   theme_minimal() +
-  ylim(0, max(proportion_cases_long$proportion) + 10)
-  
-
+  ylim(0, max(proportion_cases$proportion) + 10)
 ```
 
 Lastly, based on yearly statistics, we aggregate data by focusing on these offense types:
 
 1.  Drug Use Cases
-2.  Possession with Intent to Distribute
-3.  Trafficking
+2.  Trafficking
+
+While trafficking only accounts for \~3% of cases, the proximity of 'The Golden Triangle' make the country a location of interest in drug trafficking in SEA, on top of the rampant drug use in the region.
 
 ```{r}
 drug_offenses <- drug_offenses %>% 
-  filter(types_of_drug_offenses %in% c("drug_use_cases", "possession_with_intent_to_distribute_cases", "trafficking_cases")) %>%
+  filter(types_of_drug_offenses %in% c("drug_use_cases","trafficking_cases")) %>%
   pivot_wider(
     names_from = types_of_drug_offenses, 
     values_from = no_cases
@@ -265,6 +262,33 @@ drug_offenses <- drug_offenses %>%
   ungroup() 
 
 head(drug_offenses)
+colnames(drug_offenses)
+```
+
+```{r}
+drug_use_cases_offenses <- drug_offenses %>% 
+  select(1:3) %>% 
+  mutate(types_of_drug_offenses = "drug_use_cases") %>% 
+  pivot_wider(
+    names_from = fiscal_year, 
+    values_from = drug_use_cases
+  )
+
+trafficking_cases_offenses <- drug_offenses %>% 
+  select(1:2, 4) %>% 
+  mutate(types_of_drug_offenses = "trafficking_cases") %>% 
+  pivot_wider(
+    names_from = fiscal_year, 
+    values_from = trafficking_cases
+  )
+```
+
+```{r}
+drug_use_cases_offenses
+```
+
+```{r}
+trafficking_cases_offenses
 ```
 
 ```{r}
@@ -281,117 +305,1256 @@ duplicated_rows
 ```
 
 ```{r}
-drug_offenses <- drug_offenses %>% 
+thai_drug_use_sf <- drug_use_cases_offenses %>% 
   left_join(thailand_population_sf, by = c("province_en" = "ADM1_EN")) %>% 
+  rename(population_count = T_TL) %>% 
+  st_as_sf()
+
+thai_trafficking_sf <- trafficking_cases_offenses %>% 
+  left_join(thailand_population_sf, by = c("province_en" = "ADM1_EN")) %>% 
+  rename(population_count = T_TL) %>% 
   st_as_sf()
 ```
 
 We save the cleaned dataset in rds:
 
 ```{r}
-write_rds(drug_offenses_sf, "data/rds/thai_drugs_sf.rds")
+write_rds(thai_drug_use_sf, "data/rds/thai_drug_use_sf.rds")
+write_rds(thai_trafficking_sf, "data/rds/thai_trafficking_sf.rds")
 ```
 
 ```{r}
-thai_drugs_sf <- read_rds("data/rds/thai_drugs_sf.rds") %>% 
+thai_drug_use_sf <- read_rds("data/rds/thai_drug_use_sf.rds") %>% 
+  st_transform(crs = 32648)
+
+thai_trafficking_sf <- read_rds("data/rds/thai_trafficking_sf.rds") %>% 
   st_transform(crs = 32648)
 ```
 
 # 2.0 Visualizing Drug Abuse Indicators
 
-```{r}
-tmap_mode('plot')
+We first focus on Drug Use Cases in Thailand, deriving the Drug Use Per Capita using the population dataset from HDX:
 
-tm_shape(drugs_thai_sf) + 
-  tm_polygons()
+A key limitation to consider is that the population count is 2023 data, and does not account for temporal variations from 2017 - 2022 which the drug_offenses data spans.
+
+```{r}
+colnames(thai_drug_use_sf)
+colnames(thai_trafficking_sf)
 ```
+
+```{r}
+thai_drug_use_sf <- thai_drug_use_sf %>%
+  mutate(
+    DUPC_2017 = `2017` / population_count,
+    DUPC_2018 = `2018` / population_count,
+    DUPC_2019 = `2019` / population_count,
+    DUPC_2020 = `2020` / population_count,
+    DUPC_2021 = `2021` / population_count,
+    DUPC_2022 = `2022` / population_count
+  )
+
+thai_trafficking_sf <- thai_trafficking_sf %>%
+  mutate(
+    DTPC_2017 = `2017` / population_count,
+    DTPC_2018 = `2018` / population_count,
+    DTPC_2019 = `2019` / population_count,
+    DTPC_2020 = `2020` / population_count,
+    DTPC_2021 = `2021` / population_count,
+    DTPC_2022 = `2022` / population_count
+  )
+```
+
+We visualize the distribution of cases per capita over time, with Blue representing Drug Use and Purple representing Trafficking
+
+```{r fig.width=12, fig.height=10}
+tmap_mode("plot")
+years <- c("2017", "2018", "2019", "2020", "2021", "2022")
+maps <- list()
+
+for (year in years) {
+  map <- tm_shape(thai_drug_use_sf) +
+    tm_fill(paste0(year), 
+            style = "jenks", 
+            palette = "Blues",
+            legend.hist = TRUE, 
+            legend.is.portrait = TRUE,
+            legend.hist.z = 0.1) + 
+    tm_layout(legend.height = 0.45,
+              legend.width = 0.35,
+              legend.outside = FALSE,
+              legend.position = c("right", "bottom"),
+              frame = FALSE) +
+    tm_borders(alpha = 0.5)
+
+  maps[[year]] <- map
+}
+
+tmap_arrange(maps[[1]], maps[[2]], maps[[3]], maps[[4]], maps[[5]], maps[[6]],
+             ncol = 2) 
+```
+
+```{r fig.width=12, fig.height=10}
+tmap_mode("plot")
+years <- c("2017", "2018", "2019", "2020", "2021", "2022")
+maps <- list()
+
+for (year in years) {
+  map <- tm_shape(thai_trafficking_sf) +
+    tm_fill(paste0(year), 
+            style = "jenks", 
+            palette = "Purples",
+            legend.hist = TRUE, 
+            legend.is.portrait = TRUE,
+            legend.hist.z = 0.1) + 
+    tm_layout(legend.height = 0.45,
+              legend.width = 0.35,
+              legend.outside = FALSE,
+              legend.position = c("right", "bottom"),
+              frame = FALSE) +
+    tm_borders(alpha = 0.5)
+
+  maps[[year]] <- map
+}
+
+tmap_arrange(maps[[1]], maps[[2]], maps[[3]], maps[[4]], maps[[5]], maps[[6]],
+             ncol = 2) 
+```
+
+Just from preliminary observation of the visualization of the different indicators per capita:
+
+1.  **Drug Use per Capita**: From 2017 to 2022, drug use per capita in Thailand displays a varied distribution, with notable hotspots in the central and northern regions. The intensity fluctuates over the years, with a peak in 2022, indicating a rise in specific areas, suggesting persistent and increasing drug issues in those region
+
+2.  **Trafficking Cases** : Drug trafficking cases show a relatively stable pattern with high intensity in the eastern and some northern regions throughout 2017 to 2022, with no major expansion in geographical spread.
+
+::: callout-important
+For the scope of this assignment, I will investigate the spatial autocorrelation of the Drug Use per Capita in 2022 as well as Drug Trafficking per Capita in 2022 which is a year of interest based on preliminary observation.
+:::
 
 # 3.0 Computing Contiguity Spatial Weights
 
 ## 3.1 Computing QUEEEN Contiguity Based Neighbours
 
+The code chunk below is used to compute Queen Contiguity Weight Matrix, using the `st_contiguity()` function from the sfdep package.
+
+```{r}
+geo <- st_geometry(thai_drug_use_sf)
+wm_q <- st_contiguity(geo, queen=TRUE)
+summary(wm_q)
+```
+
+::: {.callout-tip title="Interpretation"}
+The summary report shows that there are 77 regions in Thailand, The most connected areas are Khon Kaen and Nakhon Sawan, with a neighbour of 9 links each. There is 1 region with no links, which is 68 (Phuket)
+:::
+
+The code chunk below lists down the neighbours of the 2 most connected regions:
+
+```{r}
+thai_drug_use_sf$province_en[68]
+thai_drug_use_sf$province_en[28]
+thai_drug_use_sf$province_en[49]
+```
+
+To get the neighbour names of the most connected areas, we run the following code chunk
+
+```{r}
+neighbors_28 <- wm_q[[28]]
+neighbors_49 <- wm_q[[49]]
+neighbor_names_28 <- thai_drug_use_sf$province_en[neighbors_28]
+neighbor_names_49 <- thai_drug_use_sf$province_en[neighbors_49]
+
+neighbor_names_28
+cat(rep("-", 50), sep = "", "\n")
+neighbor_names_49
+```
+
 ## 3.2 Creating ROOK Contiguity Based Neighbours
 
-## 3.3 VIsualizing Contiguity Weights
+```{r}
+geo <- st_geometry(thai_drug_use_sf)
+wm_r <- st_contiguity(geo, queen=FALSE)
+summary(wm_r)
+```
+
+We can identify higher order neighbors with st_nb_lag() and the cumulative higher order neighbors with st_nb_lag_cumul().
+
+```{r}
+st_nb_lag(wm_q, 2)
+st_nb_lag_cumul(wm_q, 2)
+cat(rep("-", 50), sep = "", "\n")
+st_nb_lag(wm_r, 2)
+st_nb_lag_cumul(wm_r, 2)
+```
+
+::: {.callout-tip title="Interpretation"}
+The output shows two different spatial weight configurations. The first has fewer links between regions and a lower percentage of nonzero weights, while the second is more densely connected with more links and higher neighbor averages, naturally because it identifies higher order neighbours.
+
+#Things that could account for similarity (although theoretically Queen Contiguity should have more links) :
+
+#Data Precision and Geometry:
+
+The geometry of the polygons might be such that no region only shares a corner. In other words, all adjacent regions share boundaries (edges), and none of the regions are connected just by touching a vertex. This can occur if the polygons are digitized in a way that makes the regions connect primarily through edges.
+:::
+
+::: callout-warning
+This can arise because when we went from mutipolygon to polygon geometries, we took the largest polygon for each province, this affects vs Rook vs Queen Contiguity in the following ways:
+
+Coversion of multipolygon to polygon can mean that the smaller polygons that provided vertex-only connections might have been discarded. Only shared edges remain and there are no polygons left that are just touching corners
+:::
+
+## 3.3 Visualizing Contiguity Weights
+
+Before proceeding, we will maintain the current use of m in our analysis to keep the precision in calculation, ensuring compatibility over time and standard interpretation of results. This is especially important in the longitude and latitude obtained from st_centroid (code chunk below) which are easting and northing values in meters, rather than geographic coordinates in degrees.
+
+The code chunk below calculates the longitude and latitude values of the geometry column:
+
+```{r}
+longitude <- map_dbl(thai_drug_use_sf$geometry, ~st_centroid(.x)[[1]])
+latitude <- map_dbl(thai_drug_use_sf$geometry, ~st_centroid(.x)[[2]])
+coords <- cbind(longitude, latitude)
+head(coords)
+```
+
+### 3.3.1 Plotting QUEEN (BLUE) & ROOK (RED) Contiguity Based Neighbour Maps
+
+```{r fig.width=12}
+par(mfrow = c(1, 3))
+
+#Queen Contiguity
+plot(thai_drug_use_sf$geometry, border = "lightgrey", main = "Queen Contiguity")
+plot(wm_q, coords, pch = 19, cex = 0.6, add = TRUE, col = 'blue')
+
+#Rook Contiguity
+plot(thai_drug_use_sf$geometry, border = "lightgrey", main = "Rook Contiguity")
+plot(wm_r, coords, pch = 19, cex = 0.6, add = TRUE, col = 'red')
+
+plot(thai_drug_use_sf$geometry, border = "lightgrey", main = "Queen & Rook Contiguity")
+plot(wm_q, coords, pch = 19, cex = 0.6, add = TRUE, col = adjustcolor('blue', alpha.f = 0.5))
+plot(wm_r, coords, pch = 19, cex = 0.6, add = TRUE, col = adjustcolor('red', alpha.f = 0.5))
+
+par(mfrow = c(1, 1))
+```
 
 # 4.0 Computing Distance Based Neighbours
 
 ## 4.1 Determine the cut-off distance
 
+We do so with the following steps:
+
+Step 1: Determine the Set of k Nearest Neighbors (st_knn() in sfdep). We start with k = 1 to determine the minimum distance guaranteeing connectivity for all points, mirroring the knearneigh() from spdep.
+
+Step 2: Convert the knn Object into a Neighbor List
+
+Step 3: Calculate Distances Between Neighbors(nbdists() in spdep) \| st_distance() in sfdep
+
+Step 4: Remove the List Structure (unlist() in sfdep)
+
+```{r}
+knn <- st_knn(coords, k = 1)
+
+distances <- sapply(seq_along(knn), function(i){
+  neighbours <- knn[[i]]
+  st_distance(st_point(coords[i, ]), st_point(coords[neighbours, ]))
+})
+
+unlisted_distances <- unlist(distances) 
+
+summary(unlisted_distances)
+```
+
+The summary report shows the largest first nearest neighbour distance is 111.489 km, so using this as the upper threshold gives certainty that all units will have at least one neighbour (with the exception of Phuket).
+
 ## 4.2 Computing fixed distance weight Matrix
+
+We compute the distance weight matrix using st_dnearneigh() as shown in the code chunk below
+
+```{r}
+wm_d112 <- dnearneigh(coords, 0, 112000)
+wm_d112
+```
+
+::: {.callout-tip title="Interpretation"}
+Interpretation: - Average Number of Links : 4.623377 - On average, each region has approximately 4.62 neighbours within the 112km distance threshold. - 2 disjoint connected subgraphs – 2regions are not connected between regions in different groups.
+:::
+
+```{r}
+table(thai_drug_use_sf$province_en, card(wm_d112))
+```
+
+### 4.2.1 Plotting Fixed Distance Weight Matrix
+
+```{r fig.height=12}
+plot(thai_drug_use_sf$geometry, border="lightgrey")
+plot(wm_d112, coords, add=TRUE)
+plot(knn, coords, add=TRUE, col="blue", length=0.08)
+```
 
 ## 4.3 Visualizing Contiguity Weights
 
+The blue lines show the links of the 1st nearest neighbours and the black lines show the links of the neighbours within the cut-off distance of 112km.
+
+We can plot it side by side to see a closer look:
+
+```{r fig.width=12}
+par(mfrow=c(1,2))
+plot(thai_drug_use_sf$geometry, border="lightgrey", main="1st nearest neighbours")
+plot(knn, coords, add=TRUE, col="blue", length=0.08)
+plot(thai_drug_use_sf$geometry, border="lightgrey", main="Distance link")
+plot(wm_d112, coords, add=TRUE, pch = 19, cex = 0.6)
+```
+
 # 5.0 Weights based on IDW
+
+We derive a spatial weight matrix based on the Inverse Distance methods.We use the st_inverse_distance() from the sfdep package to calculate inverse distance.
+
+```{r}
+ids <- st_inverse_distance(wm_q, coords)
+str(ids)
+print(ids)
+```
 
 # 6.0 Row-standardized Weights Matrix
 
+In this section, we assign weights to each neigbouring polygon, where the neighbouring polygon will be assigned equal weight (style="W). We utilize the st_weights() to do this, and set the attribute allow_zero=TRUE to account for Region 68 (Phuket), allowing for lists of non-neighbours.
+
+## Row-standardized Weights
+
+This tab shows the **Row-standardized weights (W)** for each region.
+
+The `allow_zero = TRUE` parameter ensures that **Phuket** (which has no neighbors) is included in the spatial weights matrix with a weight of zero. This allows it to remain in the analysis without artificially adding neighbors.
+
+```{r}
+rswm_q <- st_weights(wm_q, style = "W", allow_zero=TRUE)
+rswm_q
+```
+
+Recall that the two most connected regions are 28 and 48. If we take a closer look we can see the weight of their neighbours for further analysis, compared to the least connected 14 (with the exception of 68):
+
+```{r}
+rswm_q[[28]]
+rswm_q[[48]]
+rswm_q[[14]]
+```
+
+For 28 and 48, each neigbour is assigned 0.1111 of the total weight, meaning when computing the average neighbouring Drug Use Per Capita Values, each neigbour's Drug Use PC will be multiplied by 0.1111 before being derived.
+
+```{r}
+summary(unlist(rswm_q))
+```
+
+## Binary Weights
+
+This tab shows the **Binary weights (B)** for each region.
+
+```{r}
+rswm_ids <- st_weights(wm_q, glist=ids, style = "B", allow_zero = TRUE)
+rswm_ids
+```
+
+```{r}
+rswm_ids[[28]]
+rswm_ids[[48]]
+rswm_ids[[14]]
+```
+
+**Polygon 28**:
+
+-   The neighbors of polygon 28 have been assigned the following weights: `[0.001952398, 0.0005938114, 0.0005540413, 0.0008786467, 0.0012913982, 0.0006684975, 0.0011046500]`. Neighbours closer to Polygon 28 will have larger weights.
+
+-   Implication: When calculating average Drug Use Per Capita, the values from its closer neighbours will have a higher weight. The same logic can be applied for 48 and 14
+
+**Polygon 8 and Polygon 1 (Additional Data)**:
+
+-   Polygon 8: `[0.0005390179, 0.0004194751]`.
+
+    -   Similar to polygon 48, polygon 8 has only two neighbors with relatively equal influence.
+
+-   Polygon 1: `[0.001399134]`.
+
+    -   Only one neighbor for polygon 1, with a single weight indicating the inverse distance for that neighbor.
+
+```{r}
+summary(unlist(rswm_ids))
+```
+
 # 7.0 Application of Spatial Weight Matrix
+
+We will create 4 different spatial lagged variables:
+
+1.  spatial lag with row-standardized weights,
+2.  spatial lag as a sum of neighbouring values,
+3.  spatial window average, and
+4.  spatial window sum.
 
 ## 7.1 Spatial Lag with row-standardized weights
 
-## 7.2 Spatial Lag as a sum of neighbouring values
+We compute the average neighbour Drug Use Per Capita (DUPC) for each polygon, which are spatially lagged values, after which we append the spatially lagged DUPC data onto the thai_drug_use_sf data frame.
 
-## 7.3 Spatial Window Average
+```{r}
+dupc_2022.lag <- st_lag(thai_drug_use_sf$DUPC_2022, 
+                        nb = wm_q, 
+                        wt = rswm_q, 
+                        allow_zero=TRUE)
+thai_drug_use_sf <- cbind(thai_drug_use_sf, dupc_2022.lag)
+colnames(thai_drug_use_sf) <- gsub("^X", "", colnames(thai_drug_use_sf))
+colnames(thai_drug_use_sf)
+```
 
-## 7.4 Spatial Window Sum
+```{r}
+dtpc_2022.lag <- st_lag(thai_trafficking_sf$DTPC_2022, 
+                        nb = wm_q, 
+                        wt = rswm_q, 
+                        allow_zero = TRUE)
+
+thai_trafficking_sf <- cbind(thai_trafficking_sf, dtpc_2022.lag)
+
+colnames(thai_trafficking_sf)
+```
+
+We plot the DUPC and the spatial Lag DUPC for comparison using the code chunk below:
+
+```{r}
+dupc_2022 <- qtm(thai_drug_use_sf, "DUPC_2022", fill.palette = "Blues")
+dupc_2022_lag <- qtm(thai_drug_use_sf, "dupc_2022.lag", fill.palette = "Blues")
+
+tmap_arrange(dupc_2022, dupc_2022_lag, asp=1, ncol=2)
+```
+
+The same goes for the DTPC:
+
+```{r}
+dtpc_2022 <- qtm(thai_trafficking_sf, "DTPC_2022", fill.palette = "Purples")
+dtpc_2022_lag <- qtm(thai_trafficking_sf, "dtpc_2022.lag", fill.palette = "Purples")
+
+tmap_arrange(dtpc_2022, dtpc_2022_lag, asp=1, ncol=2)
+```
+
+## 7.2 Space Time Cube
+
+Since our data is in wide format with 1 column per year, we reshape it so each row represents unique combination of province and year
+
+```{r}
+thai_drug_use_long <- thai_drug_use_sf %>%
+  select(province_en, geometry,
+         DUPC_2017, DUPC_2018, DUPC_2019, DUPC_2020, DUPC_2021, DUPC_2022) %>%
+  pivot_longer(cols = starts_with("DUPC_"),
+               names_to = "year",
+               names_prefix = "DUPC_",
+               values_to = "DUPC") %>%
+  mutate(year = as.numeric(year))
+
+# View reshaped data
+head(thai_drug_use_long)
+```
+
+Now that the data is in long format, we can create the **spacetime object** using the `as_spacetime()` function from the **sfdep** package.
+
+```{r}
+colnames(thai_drug_use_long)
+```
+
+```{r}
+spt <- as_spacetime(
+  thai_drug_use_long, 
+  .loc_col = "province_en",  
+  .time_col = "year"        
+)
+
+spt
+```
+
+```{r}
+is_spacetime_cube(spt)
+```
+
+### 7.5.2 Spacetime Contexts
+
+To switch between the data and geometry contexts, we use `activate()` from sfdep:
+
+```{r}
+activate(spt, "data")
+```
+
+```{r}
+activate(spt, "geometry")
+```
 
 # PART II : Global Measures of Spatial Autocorrelation
+
+We will compute Global Spatial Autocorrelation Statistics and perform spatial complete randomness test for global spatial autocorrelation
 
 # 8.0 Global Measures of Spatial Autocorrelation: Moran's I
 
 ## 8.1 Moran's I Test
 
+The code chunk below performs Moran's I statistical testing using `global_moran()`of **sfdep,** as well as `global_moran_test()`.
+
+-   The first gives us a measure of spatial autocorrelation of drug_use_cases throughout the years
+
+-   The second function tells us if the autocorrelation is statistically significant.
+
+DUPC
+
+```{r}
+global_moran(thai_drug_use_sf$DUPC_2022, 
+             nb = wm_q, 
+             wt = rswm_q, 
+             na_ok=TRUE)
+```
+
+Global Moran’s I Result:
+
+Moran’s I value: 0.3244175
+
+Positive Spatial Autocorrelation: means regions with similar values are clustered together, indicating moderately positive spatial autocorrelation for DUPC in 2022
+
+K-value (K = 3.125771)
+
+K value of 3.125771 suggests that there is notable clustering in the data, meaning that spatial autocorrelation is present and is non-random.
+
+DTPC
+
+```{r}
+global_moran(thai_trafficking_sf$DTPC_2022, 
+             nb = wm_q, 
+             wt = rswm_q, 
+             na_ok=TRUE)
+```
+
+Global Moran’s I Result:
+
+Moran’s I value: 0.2305723
+
+Positive Spatial Autocorrelation: means regions with similar values are clustered together, indicating moderately positive spatial autocorrelation for DTPC in 2022
+
+K-value (K = 4.881418)
+
+K value of 4.881418 suggests that there is notable clustering in the data, meaning that spatial autocorrelation is present and is non-random.
+
+```{r}
+global_moran_test(thai_drug_use_sf$DUPC_2022, 
+             nb = wm_q, 
+             wt = rswm_q, 
+             zero.policy=TRUE)
+```
+
+```{r}
+global_moran_test(thai_trafficking_sf$DTPC_2022, 
+             nb = wm_q, 
+             wt = rswm_q, 
+             zero.policy=TRUE)
+```
+
+::: callout-note
+**Interpretation: Statistical Significance of the Global Moran Test**
+
+-   **p-value**: Strongly significant, rejecting the null hypothesis of no spatial autocorrelation.
+
+-   **Expectation (-0.013)**: Expected Moran's I under null hypothesis; observed value is much higher, supporting positive spatial clustering.
+:::
+
 ## 8.2 Computing Monte Carlo Moran's I
 
+DUPC
+
+```{r}
+mc_mi_g_dupc <- global_moran_perm(thai_drug_use_sf$DUPC_2022, 
+                               nb = wm_q, 
+                               wt = rswm_q, 
+                               nsim=999, 
+                               zero.policy=TRUE, 
+                               na.action=na.omit)
+mc_mi_g_dupc
+```
+
+DTPC
+
+```{r}
+mc_mi_g_dtpc <- global_moran_perm(thai_trafficking_sf$DTPC_2022, 
+                               nb = wm_q, 
+                               wt = rswm_q, 
+                               nsim=999, 
+                               zero.policy=TRUE, 
+                               na.action=na.omit)
+mc_mi_g_dtpc
+```
+
+Interpretation: **Moran’s I Interpretation for Drug Use Per Capita (2022):**
+
+-   **p-value (\< 2.2e-16)**: Strongly significant, rejecting the null hypothesis of no spatial autocorrelation.
+-   **Expectation (-0.013)**: The expected Moran's I under the null hypothesis; the observed value (0.3202) is much higher, indicating strong positive spatial clustering for drug use per capita.
+
+**Moran’s I Interpretation for Drug Trafficking Per Capita (2022):**
+
+-   **p-value (0.012)**: Statistically significant, rejecting the null hypothesis of no spatial autocorrelation, though the effect is weaker than drug use.
+-   **Expectation (-0.013)**: The expected Moran's I under the null hypothesis; the observed value (0.22758) is moderately higher, indicating positive spatial clustering for drug trafficking per capita.
+
 ## 8.3 Visualizing Monte Carlo Moran's i
+
+In the code chunk below [`hist()`](https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/hist) and [`abline()`](https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/abline) of R Graphics are used.
+
+```{r}
+mean(mc_mi_g_dupc$res[1:999])
+var(mc_mi_g_dupc$res[1:999])
+```
+
+```{r}
+mean(mc_mi_g_dtpc$res[1:999])
+var(mc_mi_g_dtpc$res[1:999])
+```
+
+```{r}
+summary((mc_mi_g_dupc$res[1:999]))
+summary((mc_mi_g_dtpc$res[1:999]))
+```
+
+## 8.4 Histogram Visualization
+
+```{r}
+ggplot(data = data.frame(x = mc_mi_g_dupc$res), aes(x = x)) +
+  geom_histogram(aes(y = after_stat(count)), bins = 20, fill = "grey", color = "black", alpha=0.5) +
+  geom_vline(xintercept = 0, color = "blue", size = 2) +
+  labs(title = "mc_mi_global_DUPC$res",
+       x = "Simulated Moran's I", 
+       y = "Frequency") +
+  theme_classic() +  
+  theme(plot.title = element_text(hjust = 0.5))  
+
+ggplot(data = data.frame(x = mc_mi_g_dtpc$res), aes(x = x)) +
+  geom_histogram(aes(y = after_stat(count)), bins = 20, fill = "grey", color = "black", alpha=0.5) +
+  geom_vline(xintercept = 0, color = "purple", size = 2) +
+  labs(title = "mc_mi_g_dtpc$res",
+       x = "Simulated Moran's I", 
+       y = "Frequency") +
+  theme_classic() +  
+  theme(plot.title = element_text(hjust = 0.5)) 
+```
+
+Interpretation: From the simulated distribution, a majority is centered around 0, which is expected under the null hypothesis of no spatial autocorrelation. The actual observed Moran's I is plotted as the vertical blue line.
+
+-   Its position in the center but being slightly to the right of 0 but within the range of simulated values indicates the observed spatial autocorrelation is not significantly different from random spatial arrangement.
+
+-   The observed **Moran's value (0.3202) coupled with the low p-value indicates weak spatial autocorrelation** for Drug Use Per Capita
+
+-   The observed **Moran's value (0.2305) coupled with the moderately low p-value indicates weak spatial autocorrelation** for Drug Trafficking per Capita. However it should be noted that the variation in results can arise from a lot of different factors, mainly because the % of cases is much higher in DUPC than DTPC.
+
+We supplement the analysis using Geary's C test, and Local Moran's I
 
 # 9.0 Global Measures of Spatial Autocorrelation: Geary's C
 
 ## 9.1 Geary's C Test
 
+The code chunk below performs Geary's C test for spatial autocorrelation using `global_c()` in the **sfdep** package. Setting the `randomization =TRUE` argument refers to the method used to compute the test statistic, and helps to ensure the p-value and test statistic are based on a permutation based-method.
+
+##DUPC
+
+```{r}
+set.seed(1234)
+global_c(thai_drug_use_sf$DUPC_2022, 
+         nb = wm_q, 
+         wt = rswm_q, 
+         allow_zero=TRUE)
+
+global_c_test(thai_drug_use_sf$DUPC_2022, 
+         nb = wm_q, 
+         wt = rswm_q, 
+         allow_zero=TRUE, 
+         randomization=TRUE)
+```
+
+##DTPC
+
+```{r}
+set.seed(1234)
+global_c(thai_trafficking_sf$DTPC_2022, 
+         nb = wm_q, 
+         wt = rswm_q, 
+         allow_zero=TRUE)
+
+global_c_test(thai_trafficking_sf$DTPC_2022, 
+         nb = wm_q, 
+         wt = rswm_q, 
+         allow_zero=TRUE, 
+         randomization=TRUE)
+```
+
+Interpretation:
+
+-   **Geary's C (0.603, 0.690)**: Indicates positive spatial autocorrelation (clustering of similar values).
+
+-   **p-value**: Strong evidence against randomness, confirming spatial clustering of drug use.
+
 ## 9.2 Computing Monte Carlo Geary's C
 
+The code chunk performs Geary's C test for spatial autocorrelation using `global_c_perm()` from **sfdep**:
+
+```{r}
+mc_gc_g_dupc <- global_c_perm(thai_drug_use_sf$DUPC_2022,
+              nb = wm_q, 
+              wt = rswm_q, 
+              nsim=999, 
+              allow_zero = TRUE)
+
+mc_gc_g_dtpc <- global_c_perm(thai_trafficking_sf$DTPC_2022,
+              nb = wm_q, 
+              wt = rswm_q, 
+              nsim=999, 
+              allow_zero = TRUE)
+
+mc_gc_g_dupc
+mc_gc_g_dtpc
+```
+
+::: callout-tip
+**Interpretation:**
+
+-   Drug use shows stronger clustering across regions compared to drug trafficking.
+-   Both patterns are statistically significant, meaning these clusters are unlikely to have formed by chance, but the clustering is more pronounced for drug use.
+:::
+
 ## 9.3 Visualizing Monte Carlo Geary's C
+
+In the code chunk below [`hist()`](https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/hist) and [`abline()`](https://www.rdocumentation.org/packages/graphics/versions/3.6.2/topics/abline) of R Graphics are used.
+
+```{r}
+mean(mc_gc_g_dupc$res[1:999])
+mean(mc_gc_g_dtpc$res[1:999])
+```
+
+Variance:
+
+```{r}
+var(mc_gc_g_dupc$res[1:999])
+var(mc_gc_g_dtpc$res[1:999])
+```
+
+```{r}
+summary((mc_gc_g_dupc$res[1:999]))
+summary((mc_gc_g_dtpc$res[1:999]))
+```
+
+# 9.2.1 Histogram Visualization
+
+```{r}
+plot_dupc <- ggplot(data = data.frame(GearyC = mc_gc_g_dupc$res), aes(x = GearyC)) +
+  geom_histogram(binwidth = 0.05, fill = "grey", alpha = 0.5, color = "black") +
+  geom_vline(xintercept = 1, color = "blue", linetype = "solid", size = 1) +
+  labs(title = "Monte Carlo Simulation of Geary's C for DUPC",
+       x = "Simulated Geary's C", 
+       y = "Frequency") +
+  theme_classic() +  
+  theme(plot.title = element_text(hjust = 0.5)) 
+
+plot_dtpc <- ggplot(data = data.frame(GearyC = mc_gc_g_dtpc$res), aes(x = GearyC)) +
+  geom_histogram(binwidth = 0.05, fill = "grey", alpha = 0.5, color = "black") +
+  geom_vline(xintercept = 1, color = "purple", linetype = "solid", size = 1) +
+  labs(title = "Monte Carlo Simulation of Geary's C for DTPC",
+       x = "Simulated Geary's C", 
+       y = "Frequency") +
+  theme_classic() +  
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Combine the two plots side by side using patchwork
+plot_dupc + plot_dtpc
+```
 
 # 10.0 Spatial Correlogram
 
 ## 10.1 Compute Moran's I Correlogram
 
-## 10.2 Compute Geary's C Correlogram and Plot
+In the code chunk below, we use `sp.correlogram()` of the spdep package to compute spatial correlogram lag of Drug Use Per Capita.
+
+```{r}
+MI_DUPC_corr <- sp.correlogram(wm_q, 
+                          thai_drug_use_sf$DUPC_2022, 
+                          order=10, 
+                          method="I", 
+                          style="W", 
+                          zero.policy=TRUE)
+
+MI_DTPC_corr <- sp.correlogram(wm_q, 
+                          thai_trafficking_sf$DTPC_2022, 
+                          order=10, 
+                          method="I", 
+                          style="W", 
+                          zero.policy=TRUE)
+plot(MI_DUPC_corr)
+plot(MI_DTPC_corr)
+```
+
+::: {.callout-caution title="How do we determine which order to stop at?"}
+The decision to stop at a specific lag depends on when the spatial autocorrelation becomes **insignificant** or close to zero. Typically, we look for the point where the **confidence intervals** include zero or Moran's I approaches zero, indicating little to no spatial dependence beyond that lag.
+:::
+
+Interpretation: Drug use Per Capita shows stronger clustering at close distances (lag 1 and 2), but spatial dependence drops off quickly, turning negative around lag 5. In contrast, drug trafficking per capita has weaker but more persistent spatial autocorrelation without signficiant negative values
+
+## 10.2 Compute Geary's C Correlogram
+
+```{r}
+GC_DUPC_corr <- sp.correlogram(wm_q, 
+                          thai_drug_use_sf$DUPC_2022, 
+                          order=10, 
+                          method="C", 
+                          style="W", 
+                          zero.policy=TRUE)
+
+GC_DTPC_corr <- sp.correlogram(wm_q, 
+                          thai_trafficking_sf$DTPC_2022, 
+                          order=10, 
+                          method="C", 
+                          style="W", 
+                          zero.policy=TRUE)
+plot(GC_DUPC_corr)
+plot(GC_DTPC_corr)
+```
 
 # PART III : Local Measures of Spatial Autocorrelation
+
+We will apply LISA functions to detect clusters or outliers from Drug Use Per Capita and Drug Trafficking Per Capita in 2022 for Thailand.
 
 # 11.0 Local Indicators of Spatial Association (LISA)
 
 ## 11.1 Computing Local Moran's I
 
+The code chunk is used to compute local Moran's I of DUPC & DUTC 2022 at the Province Level:
+
+```{r}
+FIPS <- order(thai_drug_use_sf$ADM1_PCODE)
+localMI_DUPC <- local_moran(thai_drug_use_sf$DUPC_2022, 
+                       nb=wm_q, 
+                       wt=rswm_q,
+                       nsim=999, 
+                       zero.policy=TRUE)
+
+localMI_DTPC <- local_moran(thai_trafficking_sf$DTPC_2022, 
+                       nb=wm_q, 
+                       wt=rswm_q,
+                       nsim=999, 
+                       zero.policy=TRUE)
+
+head(localMI_DUPC)
+head(localMI_DTPC)
+```
+
+::: {.callout-tip title="Interpretation"}
+The decision to stop at a specific lag depends on when the spatial autocorrelation becomes **insignificant** or close to zero. Typically, we look for the point where the **confidence intervals** include zero or Moran's I approaches zero, indicating little to no spatial dependence beyond that lag.
+:::
+
+`local_moran()` function returns a matrix of values whose columns are:
+
+-   ii: the local Moran’s I statistics
+
+-   eii: the expectation of local moran statistic under the randomisation hypothesis
+
+-   var_ii: the variance of local moran statistic under the randomisation hypothesis
+
+-   z_ii:the standard deviate of local moran statistic
+
+-   p_ii: the p-value of local moran statistic
+
+-   **p_ii_sim: the p-value of the simulated local moran statistic\***
+
+-   p_folded_sim: the simulation folded \[0, 0.5\] range ranked p-value (based on https://github.com/pysal/esda/blob/4a63e0b5df1e754b17b5f1205b8cadcbecc5e061/esda/crand.py#L211-L213)
+
+-   skewness: For localmoran_perm, the output of e1071::skewness() for the permutation samples underlying the standard deviates
+
+-   kurtosis: For localmoran_perm, the output of e1071::kurtosis() for the permutation samples underlying the standard deviates
+
+### 11.1.1 Local Moran Bivariate
+
+### 11.1.2 Mapping local Moran's I Values The code chunks below can be used to perform the task of appending the local Moran's I dataframe onto the Thailand SpatialPolygonDataFrame.
+
+```{r}
+thai_drug_use.localMI <- cbind(thai_drug_use_sf, localMI_DUPC)
+thai_trafficking.localMI <- cbind(thai_drug_use_sf, localMI_DTPC)
+```
+
+Drug Use Per Capita Map
+
+```{r}
+localMI_DUPC.map <- tm_shape(thai_drug_use.localMI) + 
+  tm_fill(col="ii", 
+          style="pretty", 
+          palette="RdBu", 
+          title="local moran statistics") + 
+  tm_borders(alpha = 0.2)
+
+pvalue_mi_dupc.map <- tm_shape(thai_drug_use.localMI) + 
+  tm_fill(col="p_ii_sim", 
+          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+          style="pretty", 
+          palette="Blues", 
+          title="local Moran's I p-values") + 
+  tm_borders(alpha = 0.2)
+
+tmap_arrange(localMI_DUPC.map, pvalue_mi_dupc.map, asp=1, ncol=2)
+```
+
+Drug Trafficking Per Capita Map
+
+```{r}
+localMI_DTPC.map <- tm_shape(thai_trafficking.localMI) + 
+  tm_fill(col="ii", 
+          style="pretty", 
+          palette="RdBu", 
+          title="local moran statistics") + 
+  tm_borders(alpha = 0.2)
+
+pvalue_mi_dtpc.map <- tm_shape(thai_trafficking.localMI) + 
+  tm_fill(col="p_ii_sim", 
+          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+          style="pretty", 
+          palette="Purples", 
+          title="local Moran's I p-values") + 
+  tm_borders(alpha = 0.2)
+
+tmap_arrange(localMI_DTPC.map, pvalue_mi_dtpc.map, asp=1, ncol=2)
+```
+
+Interpretation:
+
+-   DUPC: Significant clustering of high values can be observed in the northeastern region, while some areas in the center display negative Moran's I values, suggesting low-value clustering
+
+-   DTPC: THere is a more significant sense of clustering in the eastern region with high positive Moran's I values. A possible factor we could account for are the borders the country share and the proximity of the region to the nefarious Golden Triangle.
+
 ## 11.2 Computing Local Geary's C
+
+```{r}
+set.seed(1234)
+FIPS <- order(thai_drug_use_sf$ADM1_PCODE)
+localGC_DUPC <- local_g_perm(thai_drug_use_sf$DUPC_2022, 
+                       nb=wm_q, 
+                       wt=rswm_q,
+                       nsim=999, 
+                       zero.policy=TRUE)
+
+localGC_DTPC <- local_g_perm(thai_trafficking_sf$DTPC_2022, 
+                       nb=wm_q, 
+                       wt=rswm_q,
+                       nsim=999, 
+                       zero.policy=TRUE)
+
+head(localGC_DUPC)
+head(localGC_DTPC)
+```
+
+The following code chunk summarizes the Local GC results in a table, printing coefficient matrices tidely.
+
+```{r}
+dupc_table <- printCoefmat(data.frame(
+  localGC_DUPC[FIPS,], 
+  row.names=thai_drug_use_sf$province_en[FIPS]),
+  check.names=TRUE
+)
+
+dtpc_table <- printCoefmat(data.frame(
+  localGC_DTPC[FIPS,], 
+  row.names=thai_trafficking_sf$province_en[FIPS]),
+  check.names=TRUE
+)
+
+dupc_table
+dtpc_table
+```
+
+### 11.2.2 Mapping both local Geary C's and p-values
+
+```{r}
+thailand_drug_use.localGC <- cbind(thai_drug_use_sf, localGC_DUPC) 
+thailand_trafficking.localGC <- cbind(thai_trafficking_sf, localGC_DTPC)
+```
+
+Drug Use Per Capita
+
+```{r}
+localGC_DUPC.map <- tm_shape(thailand_drug_use.localGC) + 
+  tm_fill(col="cluster", 
+          style="pretty", 
+          palette="-RdBu", 
+          title="local geary c statistics") + 
+  tm_borders(alpha = 0.2)
+
+pvalue_gc_dupc.map <- tm_shape(thailand_drug_use.localGC) + 
+  tm_fill(col="p_sim", 
+          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+          palette="-Blues", 
+          title = "local Geary's C p-values") +
+  tm_borders(alpha = 0.2)
+
+tmap_arrange(localGC_DUPC.map, pvalue_gc_dupc.map, asp=1, ncol=2)
+```
+
+Drug Trafficking Per Capita
+
+```{r}
+localGC_DTPC.map <- tm_shape(thailand_trafficking.localGC) + 
+  tm_fill(col="cluster", 
+          style="pretty", 
+          palette="-RdBu", 
+          title="local geary c statistics") + 
+  tm_borders(alpha = 0.2)
+
+pvalue_gc_dtpc.map <- tm_shape(thailand_trafficking.localGC) + 
+  tm_fill(col="p_sim", 
+          breaks=c(-Inf, 0.001, 0.01, 0.05, 0.1, Inf),
+          palette="-Purples", 
+          title = "local Geary's C p-values") +
+  tm_borders(alpha = 0.2)
+
+tmap_arrange(localGC_DTPC.map, pvalue_gc_dtpc.map, asp=1, ncol=2)
+```
 
 # 12.0 Creating a LISA Cluster Map
 
+The LISA Cluster Map shows the significant locations color coded by type of spatial autocorrelation. The first step before we can generate the LISA cluster map is to plot the Moran scatterplot.
+
 ## 12.1 Plotting Moran scatterplot
+
+The plot is split into 4 quadrants, with the top right belonging to areas having a high DUPC in 2022, surrounded by other areas that have the average level of the DUPC. These are high-high locations. Conversely, the ones in the lower-left quadrant are low-low areas.
+
+```{r}
+rswm_q_list <- recreate_listw(wm_q, rswm_q)
+nci_dupc <- moran.plot(thai_drug_use_sf$DUPC_2022,rswm_q_list
+                  ,labels=as.character(thai_drug_use_sf$province_en), 
+                   xlab="DUPC 2022", 
+                   ylab="Spatially Lag DUPC 2022", 
+                   zero.policy = TRUE)
+nci_dupc
+```
+
+```{r}
+nci_dtpc <- moran.plot(thai_trafficking_sf$DTPC_2022,rswm_q_list
+                  ,labels=as.character(thai_trafficking_sf$province_en), 
+                   xlab="DTPC 2022", 
+                   ylab="Spatially Lag DTPC 2022", 
+                   zero.policy = TRUE)
+
+nci_dtpc
+```
+
+Interpretation: Key provinces such as Ubon Ratchathani and Bueng Kan show high spatial lag and DUPC/DTPC values, indicating that they influence nearby regions significantly. On the other hand, provinces like Khon Kaen and Mukdahan display lower spatial lags, suggesting less regional clustering.
 
 ## 12.2 Plotting Moran scatterplot with standardised variable
 
+We use scale() to center and scale the variable, DUPC. Centering is done by subtracting the mean by the corresponding columns and scaling by dividing the variable by their standard deviation
+
+```{r}
+thai_drug_use_sf$z_ii_DUPC <- scale(thai_drug_use_sf$DUPC_2022) %>% 
+  as.vector
+
+thai_trafficking_sf$z_ii_DTPC <- scale(thai_trafficking_sf$DTPC_2022) %>% 
+  as.vector
+```
+
+```{r}
+thai_trafficking_sf
+```
+
+We plot the Moran scatterplot using the code chunk below:
+
+```{r}
+rswm_q_list <- recreate_listw(wm_q, rswm_q)
+nci_dupc_zii <- moran.plot(thai_drug_use_sf$z_ii_DUPC, rswm_q_list, 
+                   labels=as.character(thai_drug_use_sf$province_en), 
+                   xlab="z-DUPC 2022", 
+                   ylab="Spatially Lag z-DUPC 2022"
+                   )
+nci_dtpc_zii <- moran.plot(thai_trafficking_sf$z_ii_DTPC, rswm_q_list, 
+                   labels=as.character(thai_trafficking_sf$province_en), 
+                   xlab="z-DTPC 2022", 
+                   ylab="Spatially Lag z-DTPC 2022"
+                   )
+
+
+nci_dupc_zii
+nci_dtpc_zii
+```
+
 ## 12.3 Preparing LISA map classes
+
+The code chunks below show the steps to prepare a LISA cluster map: 1. quadrant preparation 2. Derivation of the spatially lagged variable of interest (DUPC, DTPC) 3. centering the local Moran's around the mean 4. Set a statistical significance level (0.05) 5. Define low-low, high-high, high-low and high-high categories and place non-significant Moran
+
+Drug Use Per Capita
+
+```{r}
+quadrant_dupc <- vector(mode="numeric",length=nrow(localMI_DUPC))
+thai_drug_use_sf$dupc_2022.lag <- lag.listw(rswm_q_list, thai_drug_use_sf$DUPC_2022, zero.policy = TRUE)
+DV_DUPC <- thai_drug_use_sf$DUPC_2022 - mean(thai_drug_use_sf$DUPC_2022)     
+LM_I_DUPC <- localMI_DUPC[,1]   
+signif_dupc <- 0.05       
+quadrant_dupc[DV_DUPC <0 & LM_I_DUPC>0] <- 1
+quadrant_dupc[DV_DUPC >0 & LM_I_DUPC<0] <- 2
+quadrant_dupc[DV_DUPC <0 & LM_I_DUPC<0] <- 3  
+quadrant_dupc[DV_DUPC >0 & LM_I_DUPC>0] <- 4    
+quadrant_dupc[localMI_DUPC[,5]>signif_dupc] <- 0
+```
+
+##Drug Trafficking Per Capita
+
+```{r}
+quadrant_dtpc <- vector(mode="numeric",length=nrow(localMI_DTPC))
+thai_trafficking_sf$dtpc_2022.lag <- lag.listw(rswm_q_list, thai_trafficking_sf$DTPC_2022, zero.policy = TRUE)
+DV_DTPC <- thai_trafficking_sf$DTPC_2022 - mean(thai_trafficking_sf$DTPC_2022)     
+LM_I_DTPC <- localMI_DTPC[,1]   
+signif_dtpc <- 0.05       
+quadrant_dtpc[DV_DTPC <0 & LM_I_DTPC>0] <- 1
+quadrant_dtpc[DV_DTPC >0 & LM_I_DTPC<0] <- 2
+quadrant_dtpc[DV_DTPC <0 & LM_I_DTPC<0] <- 3  
+quadrant_dtpc[DV_DTPC >0 & LM_I_DTPC>0] <- 4    
+quadrant_dtpc[localMI_DTPC[,5]>signif_dtpc] <- 0
+```
 
 ## 12.4 Plotting LISA map
 
-# OPTIONAL
+Now, we can build the LISA map by using the code chunks below.
 
-# X.0 Hot Spot and Cold Spot Area Analysis
+Drug Use Per Capita
 
-## X.1 Deriving distance-based weight matrix
+```{r}
+thai_drug_use.localMI$quadrant_dupc <- quadrant_dupc
+colors <- c("#ffffff", "#2c7bb6", "#abd9e9", "#fdae61", "#d7191c")
+clusters <- c("insignificant", "low-low", "low-high", "high-low", "high-high")
 
-## X.2 Computing adaptive distance weight matrix
+LISAmap_DUPC <- tm_shape(thai_drug_use.localMI) +
+  tm_fill(col = "quadrant_dupc", 
+          style = "cat", 
+          palette = colors[c(sort(unique(quadrant_dupc)))+1], 
+          labels = clusters[c(sort(unique(quadrant_dupc)))+1],
+          popup.vars = c("")) +
+  tm_view(set.zoom.limits = c(11,17)) +
+  tm_borders(alpha=0.5)
 
-# X.0 Computing Gi statistics
+tmap_arrange(dupc_2022,dupc_2022_lag, asp=1, ncol=2)
+tmap_arrange(LISAmap_DUPC, asp=1, ncol=1)
+tmap_arrange(localMI_DUPC.map, pvalue_mi_dupc.map, asp=1, ncol=2)
+tmap_arrange(localGC_DUPC.map, pvalue_gc_dupc.map, asp=1, ncol=2)
+```
 
-# X. Conclusion & Summary
+Drug Trafficking Per Capita
 
-# X. References
+```{r}
+thai_trafficking.localMI$quadrant_dtpc <- quadrant_dtpc
+colors <- c("#ffffff", "#2c7bb6", "#abd9e9", "#fdae61", "#d7191c")
+clusters <- c("insignificant", "low-low", "low-high", "high-low", "high-high")
 
-### APA Citation:
+LISAmap_DTPC <- tm_shape(thai_trafficking.localMI) +
+  tm_fill(col = "quadrant_dtpc", 
+          style = "cat", 
+          palette = colors[c(sort(unique(quadrant_dtpc)))+1], 
+          labels = clusters[c(sort(unique(quadrant_dtpc)))+1],
+          popup.vars = c("")) +
+  tm_view(set.zoom.limits = c(11,17)) +
+  tm_borders(alpha=0.5)
 
-Windle, J. (2016). Drugs and drug policy in Thailand. *University of East London*. Retrieved from <https://www.state.gov/>
+tmap_arrange(dtpc_2022,dtpc_2022_lag, asp=1, ncol=2)
+tmap_arrange(LISAmap_DTPC, asp=1, ncol=1)
+tmap_arrange(localMI_DTPC.map, pvalue_mi_dtpc.map, asp=1, ncol=2)
+tmap_arrange(localGC_DTPC.map, pvalue_gc_dtpc.map, asp=1, ncol=2)
+```
+
+# 13.0 Hot Spot and Cold Spot Area Analysis
+
+Beside detecting cluster and outliers, localised spatial statistics can be also used to detect hot spot and/or cold spot areas.
+
+## 13.1 Deriving distance-based weight matrix
+
+From our earlier analysis, we have determined the cut-off distance from 112km.
+
+### 13.1.2 Computing Fixed distance weight matrix
+
+```{r}
+wm_d112
+```
+
+Next, [`recreate_listw()`](https://sfdep.josiahparry.com/reference/recreate_listw) is used to convert the nb object into spatial weights object.
+
+```{r}
+wmd112_lw <- nb2listw(wm_d112, style="B")
+summary(wmd112_lw)
+```
+
+# 14.0 Computing Gi statistics
+
+## 14.1 Gi Statistics using fixed distance
+
+```{r}
+FIPS <- order(thai_drug_use_sf$ADM1_PCODE)
+gi_dupc.fixed <- localG(thai_drug_use_sf$DUPC_2022, wmd112_lw)
+gi_dupc.fixed
+
+
+gi_dtpc.fixed <- localG(thai_trafficking_sf$DTPC_2022, wmd112_lw)
+gi_dtpc.fixed
+```
+
+From the output, several provinces are identified as significant hotspots (e.g., Z-scores significantly higher than 1.96), while others are significant coldspots (Z-scores lower than -1.96).
+
+```         
+-   Locations with high Z-scores like are strong hotspots, indicating areas where drug use per capita is unusually high and clustered spatially.
+
+-   Locations with low Z-scores are coldspots, suggesting areas with lower-than-expected values for drug use per capita that are also spatially clustered.
+```
+
+The code chunk below joins the Gi values to the original data frame:
+
+```{r}
+thai_drug_use_sf.gi <- cbind(thai_drug_use_sf, as.matrix(gi_dupc.fixed)) %>% 
+  rename(gstat_fixed = as.matrix.gi_dupc.fixed.)
+```
+
+```{r}
+thai_trafficking_sf.gi <- cbind(thai_drug_use_sf, as.matrix(gi_dtpc.fixed)) %>% 
+  rename(gstat_fixed = as.matrix.gi_dtpc.fixed.)
+```
+
+## 14.2 Mapping Gi values with fixed distance weights
+
+Using tmap:
+
+DUPC
+
+```{r}
+gimap_dupc<-tm_shape(thai_drug_use_sf.gi) +
+  tm_fill(col = "gstat_fixed", 
+          style = "pretty",
+          palette="-RdBu",
+          title = "local Gi") +
+  tm_borders(alpha = 0.5)
+
+tmap_arrange(dupc_2022, gimap_dupc, asp=1, ncol=2)
+```
+
+DTPC
+
+```{r}
+gimap_dtpc<-tm_shape(thai_trafficking_sf.gi) +
+  tm_fill(col = "gstat_fixed", 
+          style = "pretty",
+          palette="-RdBu",
+          title = "local Gi") +
+  tm_borders(alpha = 0.5)
+
+tmap_arrange(dtpc_2022, gimap_dtpc, asp=1, ncol=2)
+```
+
+## 14.3 Emerging Hot Spot Analysis
+
+EHSA identifies trends in spatial clustering over time, combining the Gi\* statistic with the Mann-Kendall trend test to detect temporal patterns in hot and cold spots.
+
+```{r}
+# ehsa <- emerging_hotspot_analysis(x = spt, .var = "DUPC", k = 1, nb_col = wm_q, wt_col = rswm_q, nsim = 99, threshold = 0.05)
+```
+
+In this iteration, we are unable to run EHSA due to the presence of empty neighbour sets (Region 68).
+
+# 15. Conclusion & Summary
+
+In investigating both the global and local spatial autocorrelation of DUPC and DTPC in 2022, we find a consistent, statistically significant evidence of clustering in Northeastern & Eastern states for DUPC and DTPC respectively.
+
+Notably, drug use showed stronger clustering compared to trafficking. While the analysis has been restricted temporally (due to the focus on 2022), we can see that in visualizing the indicators, there was still a strong concentration in the aforementioned areas.
+
+Recognizing the limitations of this analysis, such as:
+
+1.  Population dataset is static, set to 2023 and does not account for variations from 2017 to 2022,
+2.  Analyzing thailand as a whole compared to specified regions
+
+Moving forward these points of concern can be addressed in future iterations, and for now analysis has been supplemented by employing functions from the sfdep package, trying out new functions such as the SpaceTimeCube as well as Emerging Hot Spot Analysis.
