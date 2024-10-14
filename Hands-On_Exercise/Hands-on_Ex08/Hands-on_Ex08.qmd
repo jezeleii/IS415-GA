@@ -1,6 +1,6 @@
 ---
-title: "TakeHome Exercise 2: Drug Abuse in Thailand"
-date: "September 27, 2024"
+title: "Hands-on Exercise 8"
+date: "October 10, 2024"
 date-modified: "last-modified"
 execute: 
   eval: true
