@@ -318,7 +318,7 @@ tm_shape(shan_sf) +
 
 ```
 
-The difference lies in the range of classes.
+The difference lies in the range of classes. Furthermore, If you do proportion vs taking the numbers at face value, there is distortion because places with a higher population naturally have more cases.
 
 # 4.0 Correlation Analysis
 

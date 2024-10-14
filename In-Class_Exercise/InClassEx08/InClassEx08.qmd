@@ -1,0 +1,15 @@
+---
+title: "In-class Exercise 8"
+date: "October 14, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
+---
+
+# 1.0 Overview
+
+## 1.1 Objectives
+
+## 1.2 Data
