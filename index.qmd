@@ -18,21 +18,18 @@ setwd("/Users/jezelei/jezeleii/IS415-GA")
 <!-- Column 1 -->
 
 ::: {style="flex: 1; text-align: center; padding: 10px; margin:0;"}
-```         
-<img src="headerImages/cover.png"style="max-width: 100%; height: auto;"/>
-```
+<img src="headerImages/header.png" style="max-width: 100%; height: auto;"/>
 :::
 
 <!-- Column 2 -->
 
 ::: {style="flex: 1; text-align: left; padding-top: 50px ;"}
-```         
+      
 <h1 style="font-weight: bold; color: #1E2A39;">JEZELEI MANANGAN</h1>
 <p>Penultimate Year, BSc Information Systems SMU</p>
 <p style="max-width: 600px; font-size:11px">
   Explore my work and see how I turn complex datasets into actionable insights. Whether you’re interested in GIS, remote sensing, or spatial analysis, you’ll find a collection of projects that demonstrate my skills in R and newfound knowledge in geospatial analytics.
 </p>
-```
 :::
 
 </section>

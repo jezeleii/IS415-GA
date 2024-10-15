@@ -6,4 +6,5 @@
 .quarto
 /.quarto/
 data/
-
+.RDataTmp
+.RDataTmp1
