@@ -1,0 +1,204 @@
+---
+title: "In-class 10"
+date: "October 21, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
+---
+
+# 1.0 Overview 
+
+```{r}
+pacman::p_load(spdep, sp,tmap, sf,ClustGeo, cluster,factoextra, NbClust, tidyverse, GGally)
+```
+
+```{r}
+shan_sf <- read_rds("data/rds/shan_sf.rds")
+shan_ict <- read_rds("data/rds/shan_ict.rds")
+shan_sf_cluster <- read_rds("data/rds/shan_sf_cluster.rds")
+```
+
+# 2.0 Conventional Hierarchal Clustering 
+
+```{r}
+proxmat <- dist(shan_ict, method = "euclidean")
+hclust_ward <- hclust(proxmat, method="ward.D")
+groups <- as.factor(cutree(hclust_ward, k = 6))
+```
+
+-   proxmat - calculates proximity metrics
+
+-   [methods](https://www.datacamp.com/tutorial/hierarchical-clustering-R) to do agglomoration:
+
+-   will not understand the argument k if you do not return the hclust() function
+
+## Pivot to Determining Optimal Clusters
+
+1.  k.max == 10 ? Is not the same as K or clustering. Is not hierarchal clustering, but is the K of the graphical Plot to Compare Results.
+2.  You don't stop at one even if it is the highest; minimum 3. in the context of the the picture (hands-on 9; it is 6)
+
+```{r}
+shan_sf_cluster <- cbind(shan_sf, as.matrix(groups)) %>% 
+  rename(`CLUSTER` = `as.matrix.groups.`) %>% 
+  select(-c(3:4, 7:9)) %>% 
+  rename(TS = TS.x)
+```
+
+-   this is an append function, as opposed to a left_join
+
+-   an alternative that can work is to use datatable or tibble (in place of shan_sf)
+
+```{r}
+qtm(shan_sf_cluster, "CLUSTER")
+```
+
+```{r}
+plot(hclust_ward, cex = 0.6)
+rect.hclust(hclust_ward, k = 6, border = 2:5)
+```
+
+-   When clustering; need to consider the spatial relationship of the neighbours ; consider the attribute value but also consider the geographical arrangement of the study area
+
+What would be interesting is to produce the cluster but consider geographical homogeneity. -\> Spatially Constrained Clustering.
+
+# 3.0 Spatially Constrained Clustering 
+
+Methods : SKATER, REDCAP, ClustGeo
+
+-   SKATER - Hard Classification
+
+-   ClustGeo - Soft Classification
+
+## 3.1 SKATER
+
+Using Network Graph Methods,
+
+![](images/Screenshot 2024-10-21 at 9.22.49 AM.png)
+
+1.  Represent area by a node, and edges represent connections between areas, forming a network. You must always start with a network
+
+<!-- -->
+
+2.  Define Edge Cost (Pick up minimum Distance)
+3.  Generates only one spinning Tree at the end of the day (purely distance based) - Minimum Spanning Tree
+
+Slide: A heuristic for fast tree partitioning
+
+4.  Add an Attribute Value
+
+SKATER METHOD
+
+4.  Use poly2nb to find nearest neighbour. Do not need to change it to sp, because the recent versions of spdep, they can accept sf
+
+```{r}
+shan.nb <- poly2nb(shan_sf)
+summary(shan.nb)
+```
+
+2.  Visualising the neighbours
+
+```{r fig.width=12}
+plot(st_geometry(shan_sf), 
+     border=grey(.5))
+pts <- st_coordinates(st_centroid(shan_sf))
+plot(shan.nb, 
+     pts, 
+     col="blue", 
+     add=TRUE)
+```
+
+-   Useful to explain the construction of the graph. But for the app, you can ignore because it is not of interest to the end user
+
+3.  Computing Minimum Spanning Tree
+
+-   a few processes can be considered
+
+    3.1 considering least cost
+
+```{r}
+lcosts <- nbcosts(shan.nb, shan_ict)
+lcosts
+```
+
+3.2 Incorporating costs into a weight object
+
+```{r}
+shan.w <- nb2listw(shan.nb, 
+                   lcosts, 
+                   style="B")
+summary(shan.w)
+```
+
+-   needs to be binary - excludes or includes neigbours, B should be an argument and shouldn't be exposed as a parameter
+
+3.3 Computing MST
+
+```{r}
+shan.mst <- mstree(shan.w)
+shan.mst
+```
+
+```{r fig.width=12}
+plot(st_geometry(shan_sf), 
+     border=gray(.5))
+plot.mst(shan.mst, 
+         pts, col="blue", 
+         cex.lab=0.7, 
+         cex.circles=0.005, 
+         add=TRUE)
+```
+
+4.  Skater Tree
+
+```{r}
+skater.clust6 <- skater(edges = shan.mst[,1:2], 
+                        data = shan_ict, 
+                        method="euclidean", 
+                        ncuts = 5)
+skater.clust6
+```
+
+-   n is always k - 1 (because n starts from 0)
+
+-   If you do not want to confuse your user; create a parameter where n is what the user places; and the backend processes it as n - 1
+
+-   though they have neighbours, in terms of their attribute neighbours they are far from it
+
+Code chunk to plot the skater tree
+
+```{r fig.width=12}
+plot(st_geometry(shan_sf), 
+     border=gray(.5))
+plot(skater.clust6, 
+     pts, 
+     cex.lab=0.7, 
+     groups.colors=c("red", "green", "blue", "brown", "pink"), 
+     cex.circles=0.005,
+     add=TRUE)
+```
+
+6.  Visualizing the clusters in a chorpleth Map
+
+```{r}
+groups_mat <- as.matrix(skater.clust6$groups)
+shan_sf_spatialcluster <- cbind(shan_sf_cluster, as.factor(groups_mat)) %>% 
+  rename(`skater_CLUSTER` = `as.factor.groups_mat.`)
+qtm(shan_sf_spatialcluster, "skater_CLUSTER")
+```
+
+-   we use as factor, instead of as character, because for numerical value, it will be automatically organized.
+
+    -   if we are using month; be careful of using ascending order
+
+    -   function to convert group object into a factor (second line) ; what we really want is the group field
+
+## 3.2 ClustGeo Method
+
+```{r}
+dist <- st_distance(shan_sf, shan_sf)
+distmat <- as.dist(dist)
+```
+
+-   tibble data format, as.dist to make it into a matrix
