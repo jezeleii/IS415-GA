@@ -1,6 +1,6 @@
 ---
 title: "Hands-on Exercise 10"
-date: "October 14, 2024"
+date: "October 15, 2024"
 date-modified: "last-modified"
 execute: 
   eval: true
@@ -12,7 +12,7 @@ execute:
 
 ## 1.1 Objectives
 
-## 1.2 The Data 
+## 1.2 The Data
 
 Two data sets will be used in this model building exercise, they are:
 
@@ -20,7 +20,7 @@ Two data sets will be used in this model building exercise, they are:
 
 -   condo_resale_2015 in csv format (i.e. *condo_resale_2015.csv*)
 
-## 1.3 Getting Started 
+## 1.3 Getting Started
 
 Before we get started, it is important for us to install the necessary R packages into R and launch these R packages into R environment.
 
@@ -64,7 +64,7 @@ The code chunk below is used to import *MP_SUBZONE_WEB_PL* shapefile by using `s
 mpsz = st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
 ```
 
-## 2.2 Updating CRS Information 
+## 2.2 Updating CRS Information
 
 The code chunk below updates the newly imported *mpsz* with the correct ESPG code (i.e. 3414)
 
@@ -86,7 +86,7 @@ We reveal the extent of *mpsz_svy21* by using `st_bbox()` of the sf package.
 st_bbox(mpsz_svy21)
 ```
 
-# 3.0 Aspatial Data Wrangling 
+# 3.0 Aspatial Data Wrangling
 
 ## 3.1 Importing the aspatial data
 
@@ -139,7 +139,7 @@ head(condo_resale.sf)
 
 # 4.0 Exploratory Data Analysis
 
-## 4.1 EDA using statistical graphs 
+## 4.1 EDA using statistical graphs
 
 We can plot the distribution of *SELLING_PRICE* by using appropriate Exploratory Data Analysis (EDA) as shown in the code chunk below.
 
@@ -166,7 +166,7 @@ ggplot(data=condo_resale.sf, aes(x=`LOG_SELLING_PRICE`)) +
 
 The distribution is relatively less skewed after transformation
 
-## 4.2 Multiple Histogram Plots distribution of variables 
+## 4.2 Multiple Histogram Plots distribution of variables
 
 The code chunk below is used to create 12 histograms. Then, `ggarrange()` is used to organised these histogram into a 3 columns by 4 rows small multiple plot.
 
@@ -215,7 +215,7 @@ ggarrange(AREA_SQM, AGE, PROX_CBD, PROX_CHILDCARE, PROX_ELDERLYCARE,
           ncol = 3, nrow = 4)
 ```
 
-## 4.3 Drawing Statistical Point Map  
+## 4.3 Drawing Statistical Point Map
 
 Lastly, we want to reveal the geospatial distribution condominium resale prices in Singapore. The map will be prepared by using **tmap** package.
 
@@ -261,7 +261,7 @@ tmap_mode("plot")
 
 # 5.0 Hedonic Pricing Modelling in R
 
-## 5.1 Simple Linear Regression Method 
+## 5.1 Simple Linear Regression Method
 
 First, we will build a simple linear regression model by using *SELLING_PRICE* as the dependent variable and *AREA_SQM* as the independent variable.
 
@@ -301,7 +301,7 @@ ggplot(data = condo_resale.sf,
 \
 Figure above reveals that there are a few statistical outliers with relatively high selling prices.
 
-## 5.2 Multiple Linear Regression Method 
+## 5.2 Multiple Linear Regression Method
 
 ### 5.2.1 Visualising the relationships of the independent variables
 
@@ -320,7 +320,7 @@ Matrix reorder is very important for mining the hiden structure and patter in th
 
 From the scatterplot matrix, it is clear that ***Freehold*** is highly correlated to ***LEASE_99YEAR***. In view of this, it is wiser to only include either one of them in the subsequent model building. As a result, ***LEASE_99YEAR*** is excluded in the subsequent model building.
 
-## 5.3 Building a hedonic pricing model using multiple linear regression method 
+## 5.3 Building a hedonic pricing model using multiple linear regression method
 
 The code chunk below using `lm()` to calibrate the multiple linear regression model.
 
@@ -413,7 +413,7 @@ ols_plot_resid_fit(condo.mlr1)
 
 The figure above reveals that most of the data poitns are scattered around the 0 line, hence we can safely conclude that the relationships between the dependent variable and independent variables are linear.
 
-### 5.5.3 Test for Normality Assumption 
+### 5.5.3 Test for Normality Assumption
 
 Lastly, the code chunk below uses [`ols_plot_resid_hist()`](https://olsrr.rsquaredacademy.com/reference/ols_plot_resid_hist.html) of *olsrr* package to perform normality assumption test.
 
@@ -512,11 +512,11 @@ The Global Moran’s I test for residual spatial autocorrelation shows that it�
 
 Since the Observed Global Moran I = 0.1424418 which is greater than 0, we can infer than the residuals resemble cluster distribution..
 
-# 6.0 Building Hedonic Pricing Models using GWmodel 
+# 6.0 Building Hedonic Pricing Models using GWmodel
 
-## 6.1 Building Fixed Bandwidth GWR Model 
+## 6.1 Building Fixed Bandwidth GWR Model
 
-## 6.2 Building Adaptive Bandwidth GWR Model 
+## 6.2 Building Adaptive Bandwidth GWR Model
 
 ## 6.3 Visualising GWR Output
 

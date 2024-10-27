@@ -8,7 +8,7 @@ execute:
   freeze: true
 ---
 
-# 1.0 Overview 
+# 1.0 Overview
 
 ```{r}
 pacman::p_load(spdep, sp,tmap, sf,ClustGeo, cluster,factoextra, NbClust, tidyverse, GGally)
@@ -20,7 +20,7 @@ shan_ict <- read_rds("data/rds/shan_ict.rds")
 shan_sf_cluster <- read_rds("data/rds/shan_sf_cluster.rds")
 ```
 
-# 2.0 Conventional Hierarchal Clustering 
+# 2.0 Conventional Hierarchal Clustering
 
 ```{r}
 proxmat <- dist(shan_ict, method = "euclidean")
@@ -63,7 +63,7 @@ rect.hclust(hclust_ward, k = 6, border = 2:5)
 
 What would be interesting is to produce the cluster but consider geographical homogeneity. -\> Spatially Constrained Clustering.
 
-# 3.0 Spatially Constrained Clustering 
+# 3.0 Spatially Constrained Clustering
 
 Methods : SKATER, REDCAP, ClustGeo
 
@@ -75,7 +75,7 @@ Methods : SKATER, REDCAP, ClustGeo
 
 Using Network Graph Methods,
 
-![](images/Screenshot 2024-10-21 at 9.22.49 AM.png)
+![](images/Screenshot%202024-10-21%20at%209.22.49%20AM.png)
 
 1.  Represent area by a node, and edges represent connections between areas, forming a network. You must always start with a network
 
@@ -192,13 +192,102 @@ qtm(shan_sf_spatialcluster, "skater_CLUSTER")
 
     -   if we are using month; be careful of using ascending order
 
-    -   function to convert group object into a factor (second line) ; what we really want is the group field
+    -   function to convert group object into a factor (second line) ; what we really want is the group field (groups)
+
+Conclusion: Useful, considered as Hard Classification as it is using nearest neighbour. All classification is based on a minimum spanning tree.
 
 ## 3.2 ClustGeo Method
+
+Soft Classification method, allowing us to decide how many proportion of the attribute we want to use and how many proportion of spatial we want to use (?)
+
+-   At what cutoff point you want to have a spatially constrained analysis. Interpretation is eyebaleld at the intersection. Once detected, we read downward and take the cutoff value. If the user wants to emphasise more on the spatial interaction (needs to increase in the D3)
+
+1.  Computing Spatial Distance Matrix
+
+2.  The Cluster Graphs
+
+3.  The Code
+
+4.  Saving clustGeoOutput
+
+5.  Computing Spatial Distance Matrix
 
 ```{r}
 dist <- st_distance(shan_sf, shan_sf)
 distmat <- as.dist(dist)
+distmat
 ```
 
 -   tibble data format, as.dist to make it into a matrix
+
+```{r}
+cr <- choicealpha(proxmat, distmat, range.alpha= seq(0,1,0.1), 
+                  K=6, graph=TRUE)
+```
+
+-   allows us to see how we want to do the cut off
+
+-   proxmat - hierarchal clustering
+
+-   distmat - calculated based on the centroid
+
+-   alpha range - always 0 - 1.
+
+-   breakout (0.1) intervals
+
+2 graphs; usually refer to the 1st one – if you use the first, for explanation. useful for end user to decide the cutoff
+
+-   Use Raw (1st one) - reflects the true value
+
+-   2nd is standardized. Purpose: allow you to better understand if you want to compare line 1 and line 2 — see the differences better ; allows you to see how the values change at the absolute point
+
+4.  Save clustGeoOutput
+
+```{r}
+clustG <- hclustgeo(proxmat, distmat, alpha=0.2)
+groups <- as.factor(cutree(clustG, k=6))
+shan_sf_clustGeo <- cbind(shan_sf, as.matrix(groups)) %>% 
+  rename(`clustGeo` = `as.matrix.groups.`)
+```
+
+Explanation:
+
+1.  For Users, have a UI for user to decide what value they want to use (slider input) – this is where you apply intercept.
+2.  Once you have this part, the interface should stop; after selecting value; it updates the backend; if not it keeps writing in and displaying out
+
+Visualizing the clustGeomap
+
+```{r}
+qtm(shan_sf_clustGeo, "clustGeo")
+```
+
+Soft vs Hard Classification
+
+-   Use Geospatial ; not building exploratory model but do segmentation – group location based on similarity and disimilarity -based on attributes you are interested in
+
+# 4.0 Characterising the Clusters
+
+```{r fig.width=12}
+ggparcoord(data = shan_sf_clustGeo, 
+            columns=c(17:21), 
+            scale="globalminmax", 
+            alphaLines = 0.2, 
+            boxplot=TRUE,
+            title="Multiple Parallel Coordinates Plots of ICT Variables by Cluster") + 
+  facet_grid(~clustGeo) + 
+  theme(axis.text.x = element_text(angle=30))
+```
+
+-   GeoVisualization : Sometimes we can use graph to complement the discussion; do not use ChartJunk
+
+-   This is complementary to the visualization of the clustGeo map
+
+    -   e.g Cluster 2: Low
+
+    -   Correlation - Box Plot (ScatterPlot)
+
+-   Do not remove the line; line means province
+
+## Comparing Cluster Map
+
+1.  LISA vs G\* - Detect Hotspot and Outliers based on 1 variable - Univariate analysis

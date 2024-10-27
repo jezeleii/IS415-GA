@@ -19,14 +19,18 @@ website:
             href: "Hands-on_Exercise/Hands-on_Ex05/Hands-on_Ex05.html"
           - text: "Hands-on Exercise 6: Global & Local Measures of Spatial Autocorrelation"
             href: "Hands-on_Exercise/Hands-on_Ex06/Hands-on_Ex06.html"
-          - text: "Hands-on Exercise 7:"
+          - text: "Hands-on Exercise 7: Shiny App"
             href: "https://jezeleii.shinyapps.io/GAShiny/"
           - text: "Hands-on Exercise 8: Geographical Segmentation with Spatially Constrained Clustering Techniques"
             href: "Hands-on_Exercise/Hands-on_Ex08/Hands-on_Ex08.html"
-          - text: "Hands-on Exercise 9: "
+          - text: "Hands-on Exercise 9: Spatially Constrained Clustering Analysis"
             href: "In-Class_Exercise/InClassEx09/InClassEx09.html"
-          - text: "Hands-on Exercise `10: "
+          - text: "Hands-on Exercise 10: Regression Modelling of Geographically Referenced Data"
             href: "Hands-on_Exercise/Hands-on_Ex10/Hands-on_Ex10.html"
+          - text: "Hands-on Exercise 11: Geographically Weighted Regression" 
+            href: "Hands-on_Exercise/Hands-on_Ex10/Hands-on_Ex11.html"
+          - text: "Hands-on Exercise 12: Geographically Weighted Predictive Modelling" 
+            href: "Hands-on_Exercise/Hands-on_Ex10/Hands-on_Ex12.html"
           
 
       - text: "In-class Exercise"
@@ -51,6 +55,10 @@ website:
             href: "In-Class_Exercise/InClassEx09/InClassEx09.html"
           - text: "In-class Exercise 10"
             href: "In-Class_Exercise/InClassEx10/InClassEx10.html"
+          - text: "In-class Exercise 11"
+            href: "In-Class_Exercise/InClassEx11/InClassEx11.html"
+          - text: "In-class Exercise 12"
+            href: "In-Class_Exercise/InClassEx12/InClassEx12.html"
             
       - text: "Take-home Exercise"
         menu: 
@@ -58,6 +66,8 @@ website:
             href: "Take-Home_Exercise/TakeHomeEx01/TakeHomeEx01.html"
           - text: "Take-home Exercise 2"
             href: "Take-Home_Exercise/TakeHomeEx02/TakeHomeEx02.html"
+          - text: "Take-home Exercise 3"
+            href: "Take-Home_Exercise/TakeHomeEx03/TakeHomeEx03.html"
         
     right: 
       - href: index.qmd
@@ -67,7 +77,7 @@ website:
 
 format:
   html:
-    theme: simplex
+    theme: lux
     css: styles.css
     toc: true
     toc-depth: 3
