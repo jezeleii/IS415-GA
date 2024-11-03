@@ -1,0 +1,1619 @@
+---
+title: "Take Home Exercise 3: Prototyping Modules for Geospatial Analytics Shiny Application"
+date: "October 27, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  freeze: true
+---
+
+# 1.0 Overview
+
+## Demand for Grab's Ride-hailing services in Jakarta
+
+This project aims to explore the factors affecting demand for Grab's services in the city of Jakarta through Spatial Interaction Modelling predominantly using Origin-Data Analysis. Our analysis appeals to a diverse set of stakeholders, both for consumers, corporate stakeholders and policy makers especially in Jakarta where traffic congestion is a predominant problem.
+
+Jakarta’s increasing urbanization drives a growing need for **on-demand transportation services** like Grab, particularly in areas with high concentrations of **POIs**. However, there is limited understanding of how these points influence traffic congestion across the city. Key questions include:
+
+-   Which POIs generate the most ride-hailing traffic?
+
+-   How does demand vary across different times of the day, week, and seasons?
+
+-   Can ride-hailing services improve access to key locations while alleviating congestion?
+
+Answering these questions will provide insights into **Jakarta’s mobility patterns** and inform strategies to **reduce traffic bottlenecks** while maintaining access to key locations.
+
+# 2.0 Division of Work
+
+### My Responsibilities:
+
+1.  EDSA
+    -   Visualization by Time Clusters
+
+    -   Visualization by Weather Patterns (Presence or Absence of Rain)
+
+    -   Visualization by Most and Least popular spots for Origin and Destination Trips on the District Level
+2.  OD Analysis (District Level)
+    -   Flow Maps
+
+    -   Origin and Destination Flows by Factor
+
+        -   Driving Type
+
+        -   Time
+
+        -   Weather
+
+    -   Push & Pull Analysis
+
+# 3.0 The data
+
+### R Packages Used
+
+```{r}
+pacman::p_load(sf, sp, tidyverse, tmap, spatstat, spdep, leaflet, ggthemes, performance, data.table, reshape2, ggpubr, DT, stplanr, kableExtra, RColorBrewer, dplyr,tidyr, gridExtra, circlize)
+```
+
+## 3.1 Datasets used
+
+Grab Posisi Data (Grab Posisi Data)
+
+-   Contains GPS pings from Grab vehicles, including timestamps, route data, and vehicle type (motorcycle/car).
+
+-   Provides insights into ride-hailing demand, traffic hotspots, and movement patterns around key locations in Jakarta.
+
+Supporting Datasets
+
+-   Jakarta Points of Interest (POI) (HumData): Includes office buildings, shopping malls, parks, and other key locations.
+
+-   Indonesia Population Density Data (ArcGIS): Adds demographic context for understanding mobility trends.
+
+-   Weather API (Weatherbit): Supplements our analysis with weather categories to allow for analysis of Grab Demand according to the presence or absence of rain.
+
+-   Jakarta Map (HDX): Visualize the geographical districts of the City-State.
+
+## 3.2 Aspatial Data
+
+1.  Category Mapping for Points of Interest
+
+```{r}
+poi_category <- read_csv("data/aspatial/mapping_poi/category_mapping.csv")
+```
+
+2.  Population (Aggregate by District)
+
+```{r}
+jakarta_population_district <- read_csv("data/aspatial/population/jakarta_township_population.csv") %>% 
+  group_by(district) %>% 
+  summarize(
+    population_2019 = sum(population_2019, na.rm=TRUE)
+  ) %>% 
+  ungroup()
+
+head(jakarta_population_district)
+```
+
+We observe that there are 44 Districts within the Area of Jakarta once aggregated to the district level.
+
+2.  Trips Data
+
+-   Inclusive of Origin, Destination
+
+-   Time Cluster
+
+-   Weather Conditions
+
+```{r}
+trips <- readRDS("data/trip_data.rds")
+```
+
+```{r}
+colnames(trips)
+```
+
+```{r}
+origin_trips <- st_as_sf(trips, coords = c("origin_lng", "origin_lat"), crs=4326)
+```
+
+```{r}
+destination_trips <- st_as_sf(trips, coords = c("destination_lng", "destination_lat"), crs=4326)
+```
+
+## 3.3 Geospatial Data
+
+1.  Read the Indonesia Administrative boundary shapefile
+
+```{r}
+# Step 1: Read the Indonesia administrative boundary shapefile
+indonesia <- st_read(
+  dsn = "data/geospatial/indo_map", 
+  layer = "idn_admbnda_adm3_bps_20200401"
+)
+```
+
+2.  Filter for DKI Jakarta and rename it to "Jakarta"
+3.  Exclude districts belonging to "Kepulauan Seribu"
+
+```{r}
+jakarta_district <- indonesia %>%
+  filter(ADM1_EN == "Dki Jakarta") %>%
+  mutate(ADM1_EN = "Jakarta")
+
+jakarta_district <- jakarta_district %>%
+  filter(ADM2_EN != "Kepulauan Seribu")  # Exclude Kepulauan Seribu
+```
+
+4.  We filter down the required columns and rename accordingly
+
+```{r}
+jakarta_district <- jakarta_district %>%
+  dplyr::select(ADM1_EN, ADM2_EN, ADM3_EN, geometry)
+
+jakarta_district <- jakarta_district %>%
+  rename(
+    province = ADM1_EN,
+    city = ADM2_EN,
+    district = ADM3_EN,
+  )
+```
+
+5.  We change the CRS to 5580, Indonesia's CRS
+6.  We simplify the geometry with a smaller tolerance to reduce subsequent compute load
+
+```{r}
+jakarta_district <- jakarta_district %>%
+  st_transform(crs = 5580)  # Transform to WGS84
+
+jakarta_district <- jakarta_district %>%
+  mutate(across(where(is.character), tolower))
+jakarta_district_df <- jakarta_district %>%
+  st_drop_geometry()
+
+jakarta_district <- jakarta_district %>%
+  st_simplify(dTolerance = 10.0)  # Smaller tolerance for longitude/latitude data
+```
+
+7.  We plot the interactive map using tmap
+
+```{r}
+# Step 8: Plot the interactive map using tmap
+tmap_mode("view")  
+tm_shape(jakarta_district) +  
+  tm_polygons("district", palette = "Blues", 
+              border.col = "black", lwd = 0.5) +  # Display district polygons with labels
+  tm_basemap("OpenStreetMap") 
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+Calculation of Centroid:
+
+```{r}
+jakarta_district_centroid <- jakarta_district %>%
+  mutate(
+    centroid = st_centroid(geometry),
+    centroid_lat = st_coordinates(centroid)[, 2],
+    centroid_lng = st_coordinates(centroid)[, 1]
+ )
+
+jakarta_district_centroid$district <- str_to_title(jakarta_district_centroid$district)
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha=0.3) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.1, alpha= 0.5, popup.vars=c("District" = "district"))
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+2.  Points of Interest Locations
+
+```{r}
+indonesia_poi <- st_read(dsn="data/geospatial/indo_poi", layer="hotosm_idn_points_of_interest_points_shp") %>% st_transform(crs = 5580) 
+
+jakarta_poi <- st_intersection(indonesia_poi, jakarta_district)
+```
+
+```{r}
+tmap_mode('plot')
+tm_shape(jakarta_district) + 
+  tm_polygons() + 
+tm_shape(jakarta_poi) + 
+  tm_dots( alpha = 0.2)
+```
+
+# 4.0 Processing OD Data
+
+For the purposes of this Take-Home Exercise, we will be experimenting with a subset of data, confining the trips dataset to a:
+
+-   certain day of week \[Friday\]
+
+This filtered data will be stored as od_trips_friday for subsequent analysis. After which, we will zoom in on different levels based on the following variables:
+
+1.  Weather \[rain or not_rain\]
+2.  Vehicle Type \[car or motorcycle\]
+3.  Points of Interest within the District \[Categorical Count\]
+4.  Time Clusters
+
+## 4.1 Geospatial Wrangling - Combining Trips Data with Centroid Mapping
+
+1.  Filter trips for Friday
+
+```{r}
+od_trips_friday <- trips %>%
+  filter(origin_day == "friday")
+```
+
+2.  Convert Origin to SF Object
+3.  Convert Destination to SF object
+
+```{r}
+origin_sf <- od_trips_friday %>%
+  st_as_sf(coords = c("origin_lng", "origin_lat"), crs = 5580)
+
+destination_sf <- od_trips_friday %>%
+  st_as_sf(coords = c("destination_lng", "destination_lat"), crs = 5580)
+```
+
+4.  Transform jakarta_district_centroid to match CRS
+5.  Perform spatial join for origin and destination points to match with the centroid
+6.  Remove geometries to perform a left_join as opposed to an st_join
+
+```{r}
+
+jakarta_district_centroid <- jakarta_district_centroid %>%
+  st_transform(crs = 5580)
+
+
+origin_with_centroids <- st_join(origin_sf, jakarta_district_centroid, left = FALSE) %>%
+  select(trj_id, origin_district, driving_mode, origin_time_cluster, 
+         origin_weather_description_category, centroid_lat_origin = centroid_lat, 
+         centroid_lng_origin = centroid_lng)
+
+
+destination_with_centroids <- st_join(destination_sf, jakarta_district_centroid, left = FALSE) %>%
+  select(trj_id, destination_district, centroid_lat_destination = centroid_lat, 
+         centroid_lng_destination = centroid_lng)
+```
+
+7.  Merge origin and destination data on `trj_id`
+
+```{r}
+
+origin_with_centroids_df <- origin_with_centroids %>% st_set_geometry(NULL)
+destination_with_centroids_df <- destination_with_centroids %>% st_set_geometry(NULL)
+
+
+od_merged <- left_join(origin_with_centroids_df, destination_with_centroids_df, by = "trj_id")
+
+od_merged <- od_merged %>%
+  select(trj_id, origin_district, destination_district, driving_mode, origin_time_cluster, 
+         origin_weather_description_category, centroid_lat_origin, centroid_lng_origin, 
+         centroid_lat_destination, centroid_lng_destination)
+
+head(od_merged)
+```
+
+Next, we process the data by filtering out records with undefined destination districts, removing intra-zonal trips and removing duplicate or NA values:
+
+Filtering Out undefined Origin Destination Districs (this could arise because of unmatched districts where there are trips coming to and fro outside of Jakarta). We convert it to lowercase beforehand first.
+
+```{r}
+district_ids <- str_to_lower(str_trim(unique(jakarta_district_centroid$district)))
+
+# Convert `origin_district` and `destination_district` to lowercase and trim whitespace in `od_trips_friday`
+od_trips_friday <- od_trips_friday %>%
+  mutate(
+    origin_district = str_to_lower(str_trim(origin_district)),
+    destination_district = str_to_lower(str_trim(destination_district))
+  )
+
+# Re-run the unmatched districts check
+unmatched_origins <- od_trips_friday %>%
+  filter(!origin_district %in% district_ids) %>%
+  distinct(origin_district)
+
+unmatched_destinations <- od_trips_friday %>%
+  filter(!destination_district %in% district_ids) %>%
+  distinct(destination_district)
+
+# Display unmatched IDs
+unmatched_origins
+unmatched_destinations
+```
+
+In the next step, we check for duplicate records as well:
+
+```{r}
+duplicate <- od_merged %>% 
+  group_by_all() %>% 
+  filter(n() > 1) %>% 
+  ungroup()
+duplicate
+```
+
+Since the result is 0, we can proceed with creation of desire line maps after removing the points where there are invalid destination points (which likely correspond with outside_of_jakarta districts)
+
+```{r}
+od_merged<- od_merged %>% 
+  drop_na(destination_district)
+
+head(od_merged)
+```
+
+# 5.0 Subset of Prototype: Visualizing Spatial Interaction
+
+## 5.1 Removing Intra-zonal flows
+
+We filter out rows where origin_district is the same as the destination_district.
+
+```{r}
+od_data <- od_merged %>% 
+  filter(origin_district != destination_district)
+```
+
+1.  We ensures the district names are lowercased before proceeding to
+
+```{r}
+od_data <- od_data %>%
+  mutate(origin_district = tolower(origin_district),
+         destination_district = tolower(destination_district)) %>% 
+  select(origin_district, destination_district, origin_time_cluster, origin_weather_description_category, everything())
+
+jakarta_district_centroid <- jakarta_district_centroid %>%
+  mutate(district = tolower(district))
+```
+
+2.  We create origin and destination points with explicit IDs
+
+```{r}
+origin_points <- od_data %>%
+  select(origin_district, centroid_lat_origin, centroid_lng_origin) %>%
+  distinct() %>%
+  st_as_sf(coords = c("centroid_lng_origin", "centroid_lat_origin"), crs = 5580) %>%
+  rename(district = origin_district)
+
+destination_points <- od_data %>%
+  select(destination_district, centroid_lat_destination, centroid_lng_destination) %>%
+  distinct() %>%
+  st_as_sf(coords = c("centroid_lng_destination", "centroid_lat_destination"), crs = 5580) %>%
+  rename(district = destination_district)
+```
+
+## 5.2 Creating Desire Lines
+
+```{r}
+desire_lines <- od2line(
+  flow = od_data,
+  zones = origin_points,
+  destination = destination_points
+)
+```
+
+```{r}
+colnames(od_data)
+```
+
+```{r}
+od_aggregated <- od_data %>%
+  group_by(origin_district, destination_district) %>%
+  summarise(trip_count = n_distinct(trj_id), .groups = "drop")
+
+# View the result
+head(od_aggregated)
+```
+
+We save the output in rds format for future use:
+
+```{r}
+write_rds(od_data, "data/rds/od_data.rds")
+```
+
+We import and save the rds into our R environment:
+
+```{r}
+od_data <- read_rds ("data/rds/od_data.rds")
+```
+
+## 5.2 Visualizing Desire Lines by Time Cluster
+
+We first create a BASEMAP FOR FRIDAY TRIPS
+
+```{r}
+desire_lines_filtered <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(trip_count > 5)
+
+tmap_mode('view')
+
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.3) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.1, 
+          alpha = 0.5, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_filtered) +
+  tm_lines(
+    col = "trip_count",          
+    palette = "viridis",         
+    lwd = 1,                    
+    alpha = 0.5,                
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_layout(legend.outside = TRUE)
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+For the purposes of dynamic visualization, we avoid sticking with light default colours of tmap and an alternative propsed as seen from above is using the viridis palette.
+
+From here, we can visualize the desire line maps based on the different variables mentioned earlier : 1. Time Cluster 2. Weather Category 3. Vehicle Type
+
+### TIME CLUSTER
+
+```{r}
+colnames(od_data)
+```
+
+```{r}
+desire_lines_mid_lull <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "midnight lull") %>% 
+  filter(trip_count > 10)
+
+desire_lines_mid_peak <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "midnight peak") %>% 
+  filter(trip_count > 10)
+
+desire_lines_morn_lull <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "morning lull") %>% 
+  filter(trip_count > 10)
+
+desire_lines_morn_peak <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "morning peak") %>% 
+  filter(trip_count > 10)
+
+desire_lines_aft_lull <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "afternoon lull") %>% 
+  filter(trip_count > 10)
+
+desire_lines_aft_peak <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "afternoon peak") %>% 
+  filter(trip_count > 10)
+
+desire_lines_evn_lull <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "evening lull") %>% 
+  filter(trip_count > 10)
+
+desire_lines_evn_peak <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_time_cluster == "evening peak") %>% 
+  filter(trip_count > 10)
+
+tmap_mode('plot')
+```
+
+::: panel-tabset
+## midnight lull
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_mid_lull) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(1,2,5,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("OpenStreetMap") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Midnight Lull", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## midnight peak
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_mid_peak) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(1,2,5,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("OpenStreetMap") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Midnight Peak", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## morning lull
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_morn_lull) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(1,2,5,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("OpenStreetMap") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Midnight Lull", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## morning peak
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_morn_peak) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(1,2,5,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("Esri.WorldGrayCanvas") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Morning Peak", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## afternoon lull
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_aft_lull) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(1,2,5,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("OpenStreetMap") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Afternoon Lull", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## afternoon peak
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_aft_lull) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(1,2,5,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("OpenStreetMap") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Afternoon Peak", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## evening lull
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_evn_lull) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(1,2,5,7,8,9,10,11,12),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("OpenStreetMap") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Evening Lull", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## evening peak
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.5) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.3, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_evn_peak) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(0.5,1,3,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("OpenStreetMap") + 
+  tm_layout(legend.outside = FALSE, 
+            main.title="Desire Lines for Grab Trips at Evening Peak", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+:::
+
+## 5.3 Visualizing Desire Lines by Weather Category
+
+For urban planners, policy makers and corporate stakeholders like Grab which rely on weather data to determine prices (where we hypothesize that strong rain for example will lead to higher demand of Grab vehicles)
+
+From here, we can visualize the desire line maps based on the different variables mentioned earlier : 1. Time Cluster 2. Weather Category 3. Vehicle Type
+
+WEATHER CATEGORY
+
+```{r}
+desire_lines_not_rain <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_weather_description_category == "not_rain") %>%   filter(trip_count > 10)
+
+desire_lines_rain <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(origin_weather_description_category == "rain") %>% 
+  filter(trip_count > 10)
+
+```
+
+::: panel-tabset
+## No Rain
+
+```{r warning=FALSE}
+tmap_mode('view')
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.2) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.1, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_not_rain) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(0.5,1,3,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("CartoDB.Positron") + 
+  tm_layout(legend.outside = TRUE, 
+            main.title="Desire Lines for No Rain Conditions", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+   tm_view(view.legend.position = c("RIGHT", "BOTTOM"))
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+Note: In our data processing, we aggregated weather conditions into rain and no rain for the purposes of simplification for the exercise and to optimize data processing.
+
+## Rain
+
+```{r warning=FALSE}
+tmap_mode('view')
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.2) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.1, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_rain) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(0.5,1,3,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("CartoDB.Positron") + 
+  tm_layout(legend.outside = TRUE, 
+            main.title="Desire Lines for Rain Conditions", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) 
+```
+:::
+
+```{r}
+tmap_mode('plot')
+```
+
+### 5.3.1 Graphical Distribution of Weather Conditions throughout the Time Clusters:
+
+Besides Map interactivity, a useful visualization for new and expert users alike are accompanying bar charts to show the weather distribution for the selected day of week, in this case Fridays.
+
+The code chunk below 1. We summarize the origin_time_cluster and origin_weather_description category 2. Plot accordingly in a comparative bar graph
+
+```{r}
+rain_distribution <- od_merged %>%
+  group_by(origin_time_cluster, origin_weather_description_category) %>%
+  summarize(count = n(), .groups = "drop") %>%
+  ungroup() %>%
+ 
+  complete(origin_time_cluster, origin_weather_description_category, fill = list(count = 0))
+```
+
+```{r}
+ggplot(rain_distribution, aes(y = origin_time_cluster, x = count, fill = origin_weather_description_category)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    title = "Distribution of Rain and Not Rain Conditions by Time Cluster",
+    y = "Time Cluster",
+    x = "Count",
+    fill = "Weather Condition"
+  ) +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1))
+```
+
+## 5.4 Visualizing Desire Lines by Vehicle Type
+
+Upon further inspection of the data, a key perspective we can investigate is the distribution of trips or how vehicle type affects desire lines and demand for Grab Vehicles.
+
+Given Indonesia's unique context of Traffic Congestion where to curb this, it has implemented legislation such as the [Odd-Even traffic policy](https://www.thejakartapost.com/news/2018/04/23/what-you-need-to-know-about-jakartas-odd-even-traffic-policy.html)(TL;DR: License plates ending in odd-numbers can only drive in odd-numbered days, and the same goes for even numbers). This policy was eventually exempted for Ride-hailing services such as Grab and Gojek, but such policies shed light on the dire state of traffic congestion within the country.
+
+There is a general understanding that motorcycle taxis in traffic-congested areas within Indonesia, especially its capital, Jakarta, are much faster on the road given they can pass through narrow roads and is much more accessible in terms of price for the average Indonesian. Given its context of one of the most traffic-congested countries in the world, the prioritization of convenience and accessibility has made the use of motorbikes more prevalent in Indonesia, as compared to other countries such as Singapore where reliable public transportation may offset such demand.
+
+The code chunk below shows the distribution of trips by vehicle type 'cars' and 'motorcycle' respectively
+
+```{r}
+desire_lines_car <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(driving_mode == "car") %>% 
+  filter(trip_count > 10)
+
+desire_lines_motorcycle <- desire_lines %>%
+  left_join(od_aggregated, by = c("origin_district", "destination_district")) %>% 
+  filter(driving_mode == "motorcycle") %>% 
+  filter(trip_count > 10)
+
+
+tmap_mode('plot')
+```
+
+::: panel-tabset
+## Car
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.2) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.1, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_car) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(0.5,1,3,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("CartoDB.Positron") + 
+  tm_layout(legend.outside = TRUE, 
+            main.title="Desire Lines for Driving Mode: Car", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+
+## Motorcycle
+
+```{r warning=FALSE}
+tm_shape(jakarta_district) + 
+  tm_polygons(alpha = 0.2) + 
+  tm_shape(jakarta_district_centroid) + 
+  tm_dots(size = 0.1, 
+          alpha = 0.6, 
+          popup.vars = c("District" = "district")) +
+  tm_shape(desire_lines_motorcycle) +
+  tm_lines(
+    lwd = "trip_count",       
+    scale = c(0.5,1,3,7),              
+    alpha = 0.5,
+    popup.vars = c("origin_district", "destination_district", "trip_count")
+  ) +
+  tm_basemap("CartoDB.Positron") + 
+  tm_layout(legend.outside = TRUE, 
+            main.title="Desire Lines for Driving Mode: Motorcycle", 
+            main.title.position = "center", 
+            main.title.size = 0.6, 
+            frame=TRUE) + 
+  tm_legend(position = c("RIGHT", "BOTTOM"), legend.text.size =0.8)
+```
+:::
+
+## 5.5 Visualizing Distribution of POIs
+
+Here, we can aggregate the counts of the POIs according to their categories based on their geographic distribution. We can use the centroid of the district we have calculated earlier to combine trips and jakarta_district data
+
+1.  We perform spatial intersection to associate POIs with Jakarta Districts
+2.  Join poi_category to get the category column
+3.  Aggregate by district and category
+
+We join the poi_category table with the jakarta_poi dataset to map the columns accordingly:
+
+```{r}
+poi_jakarta_district <- st_intersection(jakarta_poi, jakarta_district) %>% 
+  select(district, value = amenity) %>% 
+  st_drop_geometry() 
+
+poi_category_jakarta <- poi_jakarta_district %>% 
+  left_join(poi_category, by = "value")
+
+poi_aggregated <- poi_category_jakarta %>% 
+  group_by(district, category) %>% 
+  summarise(count = n(), .groups='drop') %>% 
+  filter(!is.na(category))
+
+datatable(poi_aggregated)
+```
+
+We can visualize the distribution of the POIs
+
+```{r fig.width=12}
+poi_aggregated_wide <- poi_aggregated %>%
+  pivot_wider(
+    names_from = category, 
+    values_from = count, 
+    values_fill = 0  # Fill missing values with 0
+  )
+
+jakarta_district_counts <- jakarta_district %>%
+  left_join(poi_aggregated_wide, by = "district")
+
+category_maps <- names(poi_aggregated_wide)[-1]  # Exclude 'district' column
+map_list <- lapply(category_maps, function(category) {
+  tm_shape(jakarta_district_counts) +
+    tm_polygons(
+      col = category, 
+      palette = "Blues", 
+      title = paste(category),
+      style = "quantile"
+    ) +
+    tm_layout(main.title = paste(category), main.title.size = 1.2)
+})
+```
+
+We establish common breaks to standardize the legend values across the different maps as opposed to taking the automatic legend values based on quantiles per map. This is to facilitate ease of comparison and visualization for the User.
+
+```{r}
+common_breaks <- c(0, 20, 40, 60, 80, 100, max(poi_aggregated_wide[-1], na.rm = TRUE))
+
+
+map_list <- lapply(category_maps, function(category) {
+  tm_shape(jakarta_district_counts) +
+    tm_polygons(
+      col = category, 
+      palette = "Blues", 
+      title = paste(category),
+      breaks = common_breaks  
+    ) +
+    tm_layout(main.title = paste(category), main.title.size = 1.2)
+})
+
+tmap_arrange(map_list[[1]], map_list[[2]], map_list[[3]], map_list[[4]], ncol = 2, nrow = 2)
+tmap_arrange(map_list[[5]], map_list[[6]], map_list[[7]], map_list[[8]], ncol = 2, nrow = 2)
+```
+
+We can also visualize it using the tooltip of each district's centroid we have calculated earlier. We join the tables for jakarta_district_centroid and the POI mapping and append a tooltip column
+
+```{r}
+colnames(jakarta_district_centroid)
+```
+
+```{r}
+unique(poi_category$category)
+```
+
+1.  Ensure `district` columns are in lowercase in both dataframes
+
+```{r}
+poi_aggregated <- poi_aggregated %>%
+  mutate(district = tolower(district))
+
+jakarta_district_centroid <- jakarta_district_centroid %>%
+  mutate(district = tolower(district))
+```
+
+2.  Pivot `poi_aggregated` to create a separate column for each category
+
+```{r}
+tooltip_data <- poi_aggregated %>%
+  pivot_wider(
+    names_from = category,
+    values_from = count,
+    values_fill = list(count = 0)  # Fill missing values with 0
+  )
+```
+
+3.  Ensure the columns are within tooltip_data, for values with NA (categories that are not present for that district), we will with 0
+
+```{r}
+required_categories <- c(
+  "Facilities_Services", "Restaurants_Food", "Essentials", 
+  "Offices_Business", "Cultural_Attractions", "Recreation_Entertainment",
+  "Shops", "Tourism_Spots", "Others"
+)
+
+for (category in required_categories) {
+  if (!category %in% colnames(tooltip_data)) {
+    tooltip_data[[category]] <- 0
+  }
+}
+
+jakarta_district_centroid_expanded <- jakarta_district_centroid %>%
+  left_join(tooltip_data, by = "district")
+```
+
+4.  We plot the map
+
+```{r}
+tmap_mode("view")
+
+tm_shape(jakarta_district) +  
+  tm_polygons(alpha = 0.3, border.col = "black") +  # District boundaries
+  tm_shape(jakarta_district_centroid_expanded) + 
+  tm_dots(
+    size = 0.1, col = "blue", alpha = 0.5,
+    popup.vars = c(
+      "District" = "district",
+      "Facilities_Services" = "Facilities_Services",
+      "Restaurants_Food" = "Restaurants_Food",
+      "Essentials" = "Essentials",
+      "Offices_Business" = "Offices_Business",
+      "Cultural_Attractions" = "Cultural_Attractions",
+      "Recreation_Entertainment" = "Recreation_Entertainment", 
+      "Shops" = "Shops", 
+      "Tourism_Spots" = "Tourism_Spots",
+      "Others" = "Others"
+    )
+  ) +
+  tm_basemap("OpenStreetMap")
+```
+
+```{r}
+tmap_mode("plot")
+```
+
+Now that we can see the number of POI categories per district by clicking into the centroid, we can also visualize this distribution through exploring the top 10 districts with the most POI to potentially use for subsequent analysis:
+
+1.  We obtain the top_districts by summing up the count across all categories per district
+2.  We filter to the top 5 districts
+3.  Arrange the Category count by descending order per district (using )
+4.  Create a Grouped Bar Chart
+
+```{r fig.width=12}
+top_districts <- poi_aggregated %>%
+  group_by(district) %>%
+  summarise(total_count = sum(count)) %>%
+  arrange(desc(total_count)) %>%
+  slice(1:5) %>%
+  pull(district)
+
+
+poi_aggregated_top <- poi_aggregated %>%
+  filter(district %in% top_districts)
+
+
+spacing_rows <- poi_aggregated_top %>%
+  distinct(district) %>%
+  mutate(category = NA, count = NA)
+
+
+poi_aggregated_with_spacing <- bind_rows(poi_aggregated_top, spacing_rows) %>%
+  arrange(district)
+```
+
+```{r fig.width=12}
+#create a grouped bar chart 
+ggplot(poi_aggregated_with_spacing, aes(y = district, x = count, fill = category)) +
+  geom_bar(stat = "identity", position = "dodge", na.rm = TRUE) +
+  labs(
+    title = "Distribution of POI Categories by District",
+    x = "Count",
+    y = "District",
+    fill = "Category"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(angle = 0, hjust = 1),
+    legend.position = "bottom",
+    plot.margin = margin(10, 10, 10, 10)
+  ) +
+  scale_fill_brewer(palette = "Set3")
+```
+
+## 5.6 Prototype Samples for Shiny App
+
+After exploring the various different variables we can filter with, this would be our sample interface by filtering with the above variables for OD Analysis - Day of Week - Time Cluster - Weather Conditions - Vehicle Type.
+
+With this as our base template:
+
+# 6.0 Spatial Interaction Modelling
+
+Aside from the graphical representation of the desire lines with respect to the selected variables, we will also explore the implementation of interaction models of OD data of the Grab Trips.
+
+We will be exploring SIM to determine factors affecting Grab Vehicle demand flows during Fridays in the our Grab Dataset which spans 2 weeks in Jakarta.
+
+We will be exploring
+
+1.  Origin Constrained Model
+2.  Destination Constrained Model
+3.  Doubly Constrained Model
+
+```{r}
+head(poi_aggregated)
+```
+
+## 6.1 Computing Distance Matrix
+
+The computed distance matrix shows the distance between pairs of locations, in this case the distance between origin district and destination districts of each trajectory of the trips. The diagonal of the table will demonstrate that a location's distance from itself (e.g origin district distance from origin distrct) will be 0.
+
+We will use the jakarta_district_centroid_expanded to compute the distance of each district from each other
+
+```{r}
+jakarta_dist_centroid_sp <- as(jakarta_district_centroid_expanded$centroid, "Spatial")
+jakarta_dist_centroid_sp
+```
+
+For the purposes of optimizing data processing for our final Shiny application, we will process using sp method as compared to sf, due to less compute power generally needed for sp functions.
+
+We use `spDists()` of sp package to compute the distance between centroids of the Jakarta Districts
+
+```{r}
+dist_districts <- spDists(jakarta_dist_centroid_sp, longlat=FALSE)
+head(dist_districts, n=c(5,5))
+```
+
+For ease of visualization, we can use the **kableExtra** package to plot a highlight table for the distance matrix
+
+Before which, we convert it into a data frame and label the rows and columns with district names
+
+```{r}
+dist_districts_df <- as.data.frame(dist_districts)
+
+rownames(dist_districts) <- jakarta_district_centroid_expanded$district
+colnames(dist_districts) <- jakarta_district_centroid_expanded$district
+```
+
+At this juncture, we represent the distance matrix calculated to display using the Highlight table of distances:
+
+In our final prototype, we also consider cognitive load and visual comprehension so we will mock some changes we might implement, such as rounding to the nearest integer, using a sequential colour scale (where higher distance values represent longer distances as well as ease of reading the data)
+
+1.  Round the Distance to the nearest integer
+
+```{r}
+rounded_distances <- dist_districts_df[1:44, 1:44] %>%
+  mutate(across(everything(), round))
+```
+
+2.  Define a sequential color palette (using RBrewer)
+
+```{r}
+color_palette <- colorRampPalette(brewer.pal(9, "Blues"))(100)
+```
+
+3.  Apply the color palette to the distance values. As values above 70k can become dark, we will conditionally make it into a white font
+
+```{r}
+highlighted_distances <- rounded_distances %>%
+  mutate(across(everything(),
+                ~ cell_spec(., 
+                            color = ifelse(. > 90000, "white", "black"),
+                            background = spec_color(as.numeric(.),
+                                                    option = "custom",
+                                                    scale_from = range(rounded_distances, na.rm = TRUE),
+                                                    palette = color_palette),
+                            bold = TRUE)))
+```
+
+4.  We create the Highlight table
+
+```{r fig.width = 12, fig.height=12}
+dist_matrix_highlight <- kable(highlighted_distances, escape = FALSE, format = "html") %>%
+  kable_styling("striped", full_width = TRUE) %>%
+  add_header_above(c(" " = 1, "Distance Matrix" = 43))
+dist_matrix_highlight
+```
+
+```{r}
+colnames(jakarta_district_centroid_expanded)
+```
+
+### 6.1.1 Pivot Distance Value by Origin and Destination District
+
+```{r}
+distPair <- melt(dist_districts) %>%
+  rename(dist = value)
+head(distPair, 10)
+```
+
+There are intrazonal distances with 0 values (interzones)
+
+Before proceeding, we update them with the lowest non-zero distance values before applying log transformation given that log 0 is an undefined value
+
+```{r}
+distPair %>% 
+  filter(dist > 0) %>% 
+  summary()
+```
+
+The lowest minimum distance is 4074 m, any distance less than this can represent the intrazonal distance. For consistency and ease of remberance, we stick to 2000m as the intra-zonal distance
+
+```{r}
+distPair$dist <- ifelse (distPair$dist == 0, 
+                         2000, distPair$dist) 
+distPair <- distPair %>% 
+  rename(origin=Var1, 
+         destination =Var2) %>% 
+  mutate(across(c(origin, destination), as.factor))
+
+summary(distPair)
+```
+
+## 6.2 Applying Log Transformation to Variables of Interest
+
+We apply log transformation for the variables of interest (categories of POI for push and pull factors), to use Poisson Regresion method.
+
+1.  For the subset of POIs in Origin and Destination Districts, we rename accordingly
+
+```{r}
+poi_aggregated_origin <- poi_aggregated %>%
+  rename(origin = district)
+
+# Rename district to 'destination' for merging with destination data
+poi_aggregated_destination <- poi_aggregated %>%
+  rename(destination = district)
+```
+
+2.  We merge the distPair with POI data for both origin and destination subsets
+3.  We Pivot the POI data wide to separate the categories into individual columns & counts
+
+```{r warning=FALSE}
+dist_with_POI <- distPair %>%
+  left_join(poi_aggregated_origin, by = "origin") %>%
+  left_join(poi_aggregated_destination, by = "destination", suffix = c("_origin", "_destination"))
+
+poi_origin_wide <- dist_with_POI %>%
+  pivot_wider(
+    names_from = category_origin,
+    values_from = count_origin,
+    names_prefix = "origin_",
+    values_fill = list(count_origin = 0)
+  )
+
+poi_orig_dest_wide <- poi_origin_wide %>%
+  pivot_wider(
+    names_from = category_destination,
+    values_from = count_destination,
+    names_prefix = "destination_",
+    values_fill = list(count_destination = 0)
+  )
+```
+
+4.  We apply Log Transformation to the category columns
+
+```{r warning=FALSE}
+columns_to_log_transform <- colnames(poi_orig_dest_wide)[4:19]
+
+
+poi_orig_dest_wide[columns_to_log_transform] <- lapply(
+  poi_orig_dest_wide[columns_to_log_transform],
+  function(x) log(as.numeric(as.character(x)) + 1)
+)
+
+head(poi_orig_dest_wide[columns_to_log_transform])
+```
+
+## 6.3 Origin-Constrained Spatial Interaction Model
+
+The origin-constrained model focuses on constraints at the origin locations, meaning the sum of interactions originating from each origin equals a known total, such as the total number of trips from each origin district. Here, only **pull (attractive) factors** of the **destination** districts will be used.
+
+Before doing so, we merge od_data and the newly created poi_orig_dest_wide
+
+```{r}
+od_data <- od_data %>%
+  rename(
+    origin = origin_district,
+    destination = destination_district
+  )
+
+tripsData <- left_join(od_data, poi_orig_dest_wide, by = c("origin", "destination"))
+
+head(tripsData)
+```
+
+```{r}
+tripsData_counts <- tripsData %>%
+  group_by(origin, destination) %>%
+  summarise(trips_count = n_distinct(trj_id), .groups = 'drop')  # Count unique trips
+
+tripsData <- left_join(tripsData, tripsData_counts, by = c("origin", "destination"))
+```
+
+\*For better viewing of variables in the 3 SIMs, we rename the origin and destination variables to read as such : "origin_district" or "deestination_district"
+
+```{r}
+tripsData <- tripsData %>%
+  rename(
+    origin_ = origin,
+    destination_ = destination
+  )
+```
+
+```{r}
+origSIM <- glm(
+  trips_count ~ origin_ + destination_Cultural_Attractions + destination_Essentials + 
+                destination_Facilities_Services + destination_Offices_Business + 
+                destination_Others + destination_Restaurants_Food + 
+                destination_Shops + destination_Recreation_Entertainment + 
+                dist - 1,  # No intercept
+  family = poisson(link = "log"),
+  data = tripsData,
+  na.action = na.exclude
+)
+
+
+summary(origSIM)
+```
+
+## 6.4 Destination-Constrained Spatial Interaction Model
+
+In this model, we focus on the characteristics of origins that make them less attractive or less likely to generate demand for trips to destinations. Unlike the origin-constrained model, which emphasizes limitations or capacities at the origin, the destination-constrained model highlights the demand (attractiveness) of destinations by analyzing factors that make certain origins less likely to send trips.
+
+```{r}
+destSIM <- glm(
+  trips_count ~ destination_ + origin_Cultural_Attractions + origin_Essentials + 
+                origin_Facilities_Services + origin_Offices_Business + 
+                origin_Others + origin_Restaurants_Food + 
+                origin_Shops + origin_Recreation_Entertainment + 
+                dist - 1,  # No intercept
+  family = poisson(link = "log"),
+  data = tripsData,
+  na.action = na.exclude
+)
+
+summary(destSIM)
+```
+
+## 6.5 Doubly Constrained Spatial Interaction Model.
+
+The Doubly Constrained Spatial Interaction Model considers both the influence of origins and destinations on trip flows, balancing "push" factors from origins and "pull" factors from destinations.
+
+```{r}
+dbcSIM <- glm(formula = trips_count ~ origin_ + destination_ + dist, 
+              family = poisson(link = "log"),
+  data = tripsData,
+  na.action = na.exclude)
+
+summary(dbcSIM)
+```
+
+# 7.0 Push-Pull Factor Analysis
+
+In our prototyping and hypothesis, there were discussions on whether the number of category counts affected the push and pull factors of that particular district. For example, if a district had was populated with restaurants_and_food POIs as a category, compared to the origin district, we can theorize that residents or tourists might be going there because of said Point of Interest. While we recognize correlation is not causation, we will thus perform push-pull factor analysis to see the distribution and likely reasons why Grab demand might be generated from origin to destination.
+
+## 7.1 Bar Chart of Coefficients
+
+Steps: 1. We combine coefficients from models into a data frame
+
+```{r}
+origin_constrained_coef <- coef(origSIM)[c("destination_Cultural_Attractions", "destination_Essentials", 
+                                           "destination_Facilities_Services", "destination_Offices_Business", 
+                                           "destination_Others", "destination_Restaurants_Food", 
+                                           "destination_Shops", "destination_Recreation_Entertainment")]
+
+destination_constrained_coef <- coef(destSIM)[c("origin_Cultural_Attractions", "origin_Essentials", 
+                                                "origin_Facilities_Services", "origin_Offices_Business", 
+                                                "origin_Others", "origin_Restaurants_Food", 
+                                                "origin_Shops", "origin_Recreation_Entertainment")]
+
+doubly_constrained_coef <- coef(dbcSIM)[c("origin_Cultural_Attractions", "origin_Essentials", 
+                                          "origin_Facilities_Services", "origin_Offices_Business", 
+                                          "origin_Others", "origin_Restaurants_Food", 
+                                          "origin_Shops", "origin_Recreation_Entertainment")]
+
+coefficients_df <- data.frame(
+  Category = c("Cultural_Attractions", "Essentials", "Facilities_Services", 
+               "Offices_Business", "Others", "Restaurants_Food", 
+               "Shops", "Recreation_Entertainment"),
+  Origin_Constrained = origin_constrained_coef,
+  Destination_Constrained = destination_constrained_coef,
+  Doubly_Constrained = doubly_constrained_coef
+)
+```
+
+2.  We melt the data for ggplot and then plot the coefficients
+
+```{r warning=FALSE}
+coefficients_long <- coefficients_df %>%
+  pivot_longer(cols = -Category, names_to = "Model", values_to = "Coefficient")
+
+# Plot
+ggplot(coefficients_long, aes(x = Category, y = Coefficient, fill = Model)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  theme_minimal() +
+  labs(title = "Push-Pull Factor Coefficients by Model",
+       x = "POI Category",
+       y = "Coefficient")
+```
+
+3.  We filter data for each model
+
+```{r}
+origin_constrained_data <- coefficients_long %>% filter(Model == "Origin_Constrained")
+destination_constrained_data <- coefficients_long %>% filter(Model == "Destination_Constrained")
+
+num_categories <- length(unique(coefficients_long$Category))
+category_colors <- brewer.pal(min(num_categories, 9), "Pastel1")
+if (num_categories > 9) {
+  category_colors <- colorRampPalette(brewer.pal(9, "Pastel1"))(num_categories)
+}
+```
+
+4.  Create individual plots for the model. For ease of visualization we rotate the axis and have a centered 0 axis.
+
+```{r fig.width=12, fig.height=12}
+plot_origin <- ggplot(origin_constrained_data, aes(y = Category, x = Coefficient, fill = Category)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Origin-Constrained Model",
+       x = "Coefficient",
+       y = "POI Category") +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1),
+        legend.position = "none") +  # Remove legend to avoid repetition in the plots
+  scale_x_continuous(position = "top", limits = c(-max(abs(origin_constrained_data$Coefficient)),
+                                                  max(abs(origin_constrained_data$Coefficient)))) +
+  scale_fill_manual(values = category_colors)
+
+plot_destination <- ggplot(destination_constrained_data, aes(y = Category, x = Coefficient, fill = Category)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Destination-Constrained Model",
+       x = "Coefficient",
+       y = "POI Category") +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1),
+        legend.position = "none") +  # Remove legend for consistency
+  scale_x_continuous(position = "top", limits = c(-max(abs(destination_constrained_data$Coefficient)),
+                                                  max(abs(destination_constrained_data$Coefficient)))) +
+  scale_fill_manual(values = category_colors)
+
+# Arrange the individual plots in a single column
+grid.arrange(plot_origin, plot_destination, ncol = 1)
+```
+
+Other than the comparative Bar Charts above which effectively plots the coefficient of the attractiveness and propulsiveness of the POI categories, we can also consider Chord Diagrams to display the connections between origin and destination POI categories 1. Summarize trips data to get total trips between each origin and destination 2. Clear Previous Plots
+
+```{r fig.width=12, fig.height=12}
+
+chord_data <- tripsData %>%
+  group_by(origin_, destination_) %>%
+  summarise(trips_count = sum(trips_count)) %>%
+  ungroup()
+
+
+category_colors <- colorRampPalette(c("lightblue", "lightpink", "lightgreen", "lightcoral", "lightyellow"))(length(unique(c(chord_data$origin_, chord_data$destination_))))
+
+
+circos.clear()
+```
+
+3.  Plot Chord Diagram
+
+```{r fig.width=12, fig.height=12}
+chordDiagram(
+  chord_data,
+  grid.col = category_colors,        
+  transparency = 0.3,                
+  annotationTrack = "grid",           
+  annotationTrackHeight = mm_h(5),    
+  preAllocateTracks = list(track.height = 0.05)  #
+)
+
+
+circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
+  sector.index <- get.cell.meta.data("sector.index")
+  circos.text(CELL_META$xcenter, CELL_META$ylim[1] + mm_y(5), sector.index, facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5), cex = 0.8)
+}, bg.border = NA)
+
+title("Push-Pull Factors by Category in Chord Diagram", cex.main = 1.5)
+```
+
+```{r}
+head(top_districts)
+head(poi_aggregated_top)
+```
+
+# 8.0 Proposed Visualizations for OD Desire Line Maps
+
+### 8.1 Additional Visualization for Trip Count by Time of Day (Heatmap)
+
+To visualize the distribution of trips by time of day, we can use the code chunk below:
+
+ORIGIN
+
+```{r fig.width=12, fig.height=12}
+tripsData$origin_time_cluster <- factor(
+  tripsData$origin_time_cluster,
+  levels = c("midnight peak", "midnight lull", "morning peak", "morning lull", 
+             "afternoon peak", "afternoon lull", "evening peak", "evening lull")
+)
+
+
+ggplot(tripsData, aes(x = origin_time_cluster, y = origin_, fill = trips_count)) +
+  geom_tile(color = "white") +  
+  scale_fill_gradient(low = "white", high = "black", name = "Trip Count") +  
+  scale_x_discrete(position = "top") +  
+  labs(
+    title = "Heatmap of Trips Throughout the Time of Day",
+    x = "Time Cluster",
+    y = "Destination District"
+  ) +
+  theme_void() +  
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5),  
+    axis.text.y = element_text(margin = margin(r = 5)), 
+    plot.title = element_text(hjust = 0.5)  
+  )
+```
+
+DESTINATION
+
+```{r fig.width=12, fig.height=12}
+tripsData$origin_time_cluster <- factor(
+  tripsData$origin_time_cluster,
+  levels = c("midnight peak", "midnight lull", "morning peak", "morning lull", 
+             "afternoon peak", "afternoon lull", "evening peak", "evening lull")
+)
+
+
+ggplot(tripsData, aes(x = origin_time_cluster, y = destination_, fill = trips_count)) +
+  geom_tile(color = "white") +  
+  scale_fill_gradient(low = "white", high = "black", name = "Trip Count") +  # Grayscale palette
+  scale_x_discrete(position = "top") +  
+  labs(
+    title = "Heatmap of Trips Throughout the Time of Day",
+    x = "Time Cluster",
+    y = "Destination District"
+  ) +
+  theme_void() +  # Removes all default grid elements
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5),  
+    axis.text.y = element_text(margin = margin(r = 5)),  
+    plot.title = element_text(hjust = 0.5)  
+  )
+```
+
+### 8.2 Split Plot Visualization for Weather Conditions:
+
+1.  We create a central 0 line
+2.  Represent 'Not_Rain' with Grey and 'Rain' with Blue
+
+```{r}
+trip_counts_district <- tripsData %>%
+  group_by(origin_, origin_weather_description_category) %>%
+  summarise(trip_count = n(), .groups = "drop")
+
+
+trip_counts_district <- trip_counts_district %>%
+  mutate(trip_count = ifelse(origin_weather_description_category == "rain", -trip_count, trip_count))
+
+
+ggplot(trip_counts_district, aes(y = origin_, x = trip_count, fill = origin_weather_description_category)) +
+  geom_bar(stat = "identity", width = 0.8) +
+  labs(
+    title = "Trip Counts by Rain Condition per District",
+    y = "District",
+    x = "Trip Count",
+    fill = "Weather Condition"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 8, margin = margin(r = 10)),  
+    panel.grid = element_blank()                                 
+  ) +
+  scale_fill_manual(values = c("darkgrey", "blue")) +                 
+  scale_x_continuous(labels = abs, limits = c(-max(trip_counts_district$trip_count), max(trip_counts_district$trip_count))) + geom_vline(xintercept = 0, color = "black") 
+```
+
+## 8.3 Shiny Prototype Sample: Time Cluster (with Vehicle Type)
+
+![](images/TimeClusterWVehicle.png)
+
+## 8.4 Shiny Prototype Sample: Weather Condition with Split Plot Visualization
+
+![](images/Weather.png)
+
+## 8.5 Shiny Prototype Sample: Points of Interest + Push and Pull Factor Analysis
+
+![](images/POIs.png)
+
+::: callout-note
+(To be Combined with Selected Desire Line Map Conditions)\
+For Prototyping Purposes we depict a singular point to see the tooltip and distribution of categories
+
+For the Chord Diagram, Upon Clicking on a Specific District in the Radius, the user can visualize the flows of trips, in this Case District as Origin
+:::
+
+# 9.0 Conclusion
+
+In this project, I set out to understand the demand for Grab’s ride-hailing services in Jakarta by digging into spatial patterns and exploring how factors like time of day, weather, and vehicle type impact trip flows across the city. By analyzing demand patterns around specific Points of Interest (like restaurants, entertainment spots, and essential services), I found that these areas attract more trips during peak times and when it rains—insights that could help Grab, urban planners, and policymakers better manage the challenges of Jakarta's traffic.
+
+Geospatial Analysis, especially Spatial Interaction Modelling can show how smart data use can make city life smoother. By using visualizations like heatmaps and chord diagrams, I tried to break down complex mobility patterns into something more accessible. The insights here could help shape practical solutions for Jakarta’s traffic congestion, from adjusting service availability during high-demand times to making it easier for people to reach essential services without exacerbating traffic congestion. While this analysis may not offer direct solutions, it does offer insights based on complex geospatial variables.

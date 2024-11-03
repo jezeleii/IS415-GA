@@ -28,7 +28,7 @@ The code chunks below installs and launches the necessary R packages into R envi
 pacman::p_load(olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary)
 ```
 
-# 2.0 Geospatial Data Wrangling 
+# 2.0 Geospatial Data Wrangling
 
 The code chunk below is used to import *MP_SUBZONE_WEB_PL* shapefile by using `st_read()` of **sf** packages.
 
@@ -50,7 +50,7 @@ Next, you will reveal the extent of *mpsz_svy21* by using `st_bbox()` of sf pack
 st_bbox(mpsz_svy21) 
 ```
 
-# 3.0 Aspatial Data Wrangling 
+# 3.0 Aspatial Data Wrangling
 
 The *condo_resale_2015* is in csv file format. The codes chunk below uses `read_csv()` function of **readr** package to import *condo_resale_2015* into R as a tibble data frame called *condo_resale*.
 
@@ -113,7 +113,7 @@ ggplot(data=condo_resale.sf, aes(x=`LOG_SELLING_PRICE`)) +
   geom_histogram(bins=20, color="black", fill="light blue")
 ```
 
-## 4.2 Multiple Histogram Plots distribution of variables 
+## 4.2 Multiple Histogram Plots distribution of variables
 
 The code chunk below is used to create 12 histograms. Then, `ggarrange()` is used to organised these histogram into a 3 columns by 4 rows small multiple plot.
 
@@ -162,7 +162,7 @@ ggarrange(AREA_SQM, AGE, PROX_CBD, PROX_CHILDCARE, PROX_ELDERLYCARE,
           ncol = 3, nrow = 4)
 ```
 
-## 4.3 Drawing Statistical Point Map 
+## 4.3 Drawing Statistical Point Map
 
 Lastly, we want to reveal the geospatial distribution condominium resale prices in Singapore. The map will be prepared by using **tmap** package.
 
@@ -236,7 +236,7 @@ Figure above reveals that there are a few statistical outliers with relatively h
 
 ## 5.2 Multiple Linear Regression Method
 
-### 5.2.1 Visualizing relationships of independent variables 
+### 5.2.1 Visualizing relationships of independent variables
 
 Before building a multiple regression model, it is important to ensure that the indepdent variables used are not highly correlated to each other. If these highly correlated independent variables are used in building a regression model by mistake, the quality of the model will be compromised. This phenomenon is known as **multicollinearity** in statistics.
 
@@ -251,7 +251,7 @@ corrplot(cor(condo_resale[, 5:23]), diag = FALSE, order = "AOE",
 
 From the scatterplot matrix, it is clear that ***Freehold*** is highly correlated to ***LEASE_99YEAR***. In view of this, it is wiser to only include either one of them in the subsequent model building. As a result, ***LEASE_99YEAR*** is excluded in the subsequent model building.
 
-## 5.3 Building a hedonic pricing model using multiple linear regression method 
+## 5.3 Building a hedonic pricing model using multiple linear regression method
 
 The code chunk below using `lm()` to calibrate the multiple linear regression model.
 
@@ -282,7 +282,7 @@ condo.mlr1 <- lm(formula = SELLING_PRICE ~ AREA_SQM + AGE +
 ols_regress(condo.mlr1)
 ```
 
-## 5.5 Preparing publication quality table: gtsummary method 
+## 5.5 Preparing publication quality table: gtsummary method
 
 The [**gtsummary**](https://www.danieldsjoberg.com/gtsummary/index.html) package provides an elegant and flexible way to create publication-ready summary tables in R.
 
@@ -340,7 +340,7 @@ In the code chunk below, the [`ols_plot_resid_fit()`](https://olsrr.rsquaredacad
 ols_plot_resid_fit(condo.mlr1)
 ```
 
-### 5.5.3 Test for Normality Assumption 
+### 5.5.3 Test for Normality Assumption
 
 Lastly, the code chunk below uses [`ols_plot_resid_hist()`](https://olsrr.rsquaredacademy.com/reference/ols_plot_resid_hist.html) of *olsrr* package to perform normality assumption test.
 
@@ -350,7 +350,7 @@ ols_plot_resid_hist(condo.mlr1)
 
 The figure reveals that the residual of the multiple linear regression model (i.e. condo.mlr1) is resemble normal distribution.
 
-## 5.5.4 Testing for Spatial Autocorrelation 
+## 5.5.4 Testing for Spatial Autocorrelation
 
 The hedonic model we try to build are using geographically referenced attributes, hence it is also important for us to visual the residual of the hedonic pricing model.
 
@@ -424,7 +424,7 @@ Since the Observed Global Moran I = 0.1424418 which is greater than 0, we can in
 
 # 6.0 Building Hedonic Pricing Models using GWModel
 
-## 6.1 Building Fixed Bandwidth GWR Model 
+## 6.1 Building Fixed Bandwidth GWR Model
 
 ### 6.1.1 Computing fixed bandwidth
 
@@ -465,7 +465,7 @@ The output is saved in a list of class “gwrm”. The code below can be used to
 gwr.fixed
 ```
 
-## 6.2 Building Adaptive Bandwidth GWR Model 
+## 6.2 Building Adaptive Bandwidth GWR Model
 
 ### 6.2.1 Computing the adaptive bandwidth
 
@@ -588,7 +588,7 @@ tmap_arrange(AREA_SQM_SE, AREA_SQM_TV,
 tmap_mode("plot")
 ```
 
-### 6.5.1 By URA Planning Region 
+### 6.5.1 By URA Planning Region
 
 ```{r}
 tm_shape(mpsz_svy21[mpsz_svy21$REGION_N=="CENTRAL REGION", ])+
