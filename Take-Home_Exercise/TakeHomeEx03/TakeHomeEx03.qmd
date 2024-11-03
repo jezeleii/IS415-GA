@@ -105,7 +105,7 @@ We observe that there are 44 Districts within the Area of Jakarta once aggregate
 -   Weather Conditions
 
 ```{r}
-trips <- readRDS("data/trip_data.rds")
+trips <- readRDS("data/rds/trip_data.rds")
 ```
 
 ```{r}
