@@ -8,13 +8,15 @@ execute:
   freeze: true
 ---
 
+
+
 # 1.0 Overview
 
 Predictive modelling uses statistical learning or machine learning techniques to predict outcomes. By and large, the event one wants to predict is in the future. However, a set of known outcome and predictors (also known as variables) will be used to calibrate the predictive models.
 
 Geospatial predictive modelling is conceptually rooted in the principle that the occurrences of events being modeled are limited in distribution. When geographically referenced data are used, occurrences of events are neither uniform nor random in distribution over space. There are geospatial factors (infrastructure, sociocultural, topographic, etc.) that constrain and influence where the locations of events occur. Geospatial predictive modeling attempts to describe those constraints and influences by spatially correlating occurrences of historical geospatial locations with environmental factors that represent those constraints and influences.
 
-## 1.1 The Data
+## 1.1 The Data 
 
 -   **Aspatial dataset**:
 
@@ -64,24 +66,34 @@ Geospatial predictive modelling is conceptually rooted in the principle that the
 
 ## 1.2 Installing and loading R Packages
 
+
+
 ```{r}
 pacman::p_load(sf, spdep, GWmodel, SpatialML, 
                tmap, rsample, Metrics, tidyverse)
 ```
 
-# 2.0 Data Preparation
+
+
+# 2.0 Data Preparation 
 
 ## 2.1 Reading data file to rds
+
+
 
 ```{r}
 mdata <- read_rds("data/mdata.rds")
 ```
 
-## 2.1 Data sampling
+
+
+## 2.1 Data sampling 
 
 The entire data are split into training and test data sets with 65% and 35% respectively by using *initial_split()* of **rsample** package. rsample is one of the package of tigymodels.
 
 set.seed(1234) resale_split \<- initial_split(mdata, prop = 6.5/10,) train_data \<- training(resale_split) test_data \<- testing(resale_split)
+
+
 
 ```{r}
 set.seed(1234)
@@ -96,9 +108,13 @@ write_rds(train_data, "data/model/train_data.rds")
 write_rds(test_data, "data/model/test_data.rds")
 ```
 
+
+
 # 3.0 Computing Correlation Matrix
 
 Before loading the predictors into a predictive model, it is always a good practice to use correlation matrix to examine if there is sign of multicolinearity.
+
+
 
 ```{r}
 mdata_nogeo <- mdata %>%
@@ -112,14 +128,22 @@ corrplot::corrplot(cor(mdata_nogeo[, 2:17]),
                    type = "upper")
 ```
 
+
+
 ## 3.1 Retrieving Stored Data
+
+
 
 ```{r}
 train_data <- read_rds("data/model/train_data.rds")
 test_data <- read_rds("data/model/test_data.rds")
 ```
 
+
+
 # 4.0 **Building a non-spatial multiple linear regression**
+
+
 
 ```{r}
 price_mlr <- lm(resale_price ~ floor_area_sqm +
@@ -133,26 +157,38 @@ price_mlr <- lm(resale_price ~ floor_area_sqm +
 summary(price_mlr)
 ```
 
+
+
 We save the output in rds:
+
+
 
 ```{r}
 write_rds(price_mlr, "data/model/price_mlr.rds" ) 
 ```
 
-# 5.0 GWR Predictive Method
+
+
+# 5.0 GWR Predictive Method 
 
 We will calibrate a model to predict HDB resale price by using geographically weighted regression method of [**GWmodel**](https://cran.r-project.org/web/packages/GWmodel/index.html) package.
 
 ## 5.1 Converting sf data.frame to SpatialPointDataFrame
+
+
 
 ```{r}
 train_data_sp <- as_Spatial(train_data)
 train_data_sp
 ```
 
+
+
 ## 5.2 Computing Adaptive Bandwidth
 
 Next, `bw.gwr()` of **GWmodel** package will be used to determine the optimal bandwidth to be used.
+
+
 
 ```{r}
 bw_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
@@ -169,19 +205,31 @@ bw_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
                   longlat=FALSE)
 ```
 
+
+
 The result shows that 40 neighbour points will be the optimal bandwidth to be used if adaptive bandwidth is used for this data set.
+
+
 
 ```{r}
 write_rds(bw_adaptive, "data/model/bw_adaptive.rds")
 ```
 
-## 5.3 Constructing adaptive bandwidth GWR model
+
+
+## 5.3 Constructing adaptive bandwidth GWR model 
+
+
 
 ```{r}
 bw_adaptive <- read_rds("data/model/bw_adaptive.rds")
 ```
 
+
+
 Now, we can go ahead to calibrate the gwr-based hedonic pricing model by using adaptive bandwidth and Gaussian kernel as shown in the code chunk below.
+
+
 
 ```{r}
 gwr_adaptive <- gwr.basic(formula = resale_price ~
@@ -199,13 +247,21 @@ gwr_adaptive <- gwr.basic(formula = resale_price ~
                           longlat = FALSE)
 ```
 
+
+
 We store the data in RDS for Future Use:
+
+
 
 ```{r}
 write_rds(gwr_adaptive, "data/model/gwr_adaptive.rds")
 ```
 
+
+
 ## **5.4 Retrieve gwr output object**
+
+
 
 ```{r}
 gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
@@ -215,7 +271,11 @@ gwr_adaptive <- read_rds("data/model/gwr_adaptive.rds")
 gwr_adaptive
 ```
 
+
+
 ## **5.5 Converting the test data from sf data.frame to SpatialPointDataFrame**
+
+
 
 ```{r}
 test_data_sp <- test_data %>%
@@ -223,7 +283,11 @@ test_data_sp <- test_data %>%
 test_data_sp
 ```
 
+
+
 ## **5.6 Computing adaptive bandwidth for the test data**
+
+
 
 ```{r}
 gwr_bw_test_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
@@ -240,23 +304,7 @@ gwr_bw_test_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
                   longlat=FALSE)
 ```
 
+
+
 ## 5.7 **Computing predicted values of the test data**
 
-```{r}
-gwr_pred <- gwr.predict(formula = resale_price ~
-                          floor_area_sqm + storey_order +
-                          remaining_lease_mths + PROX_CBD + 
-                          PROX_ELDERLYCARE + PROX_HAWKER + 
-                          PROX_MRT + PROX_PARK + PROX_MALL + 
-                          PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
-                          WITHIN_350M_CHILDCARE + WITHIN_350M_BUS + 
-                          WITHIN_1KM_PRISCH, 
-                        data=train_data_sp, 
-                        predictdata = test_data_sp, 
-                        bw=40, 
-                        kernel = 'gaussian', 
-                        adaptive=TRUE, 
-                        longlat = FALSE)
-```
-
-# 
