@@ -239,24 +239,3 @@ gwr_bw_test_adaptive <- bw.gwr(resale_price ~ floor_area_sqm +
                   adaptive=TRUE,
                   longlat=FALSE)
 ```
-
-## 5.7 **Computing predicted values of the test data**
-
-```{r}
-gwr_pred <- gwr.predict(formula = resale_price ~
-                          floor_area_sqm + storey_order +
-                          remaining_lease_mths + PROX_CBD + 
-                          PROX_ELDERLYCARE + PROX_HAWKER + 
-                          PROX_MRT + PROX_PARK + PROX_MALL + 
-                          PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
-                          WITHIN_350M_CHILDCARE + WITHIN_350M_BUS + 
-                          WITHIN_1KM_PRISCH, 
-                        data=train_data_sp, 
-                        predictdata = test_data_sp, 
-                        bw=40, 
-                        kernel = 'gaussian', 
-                        adaptive=TRUE, 
-                        longlat = FALSE)
-```
-
-# 
