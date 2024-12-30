@@ -176,7 +176,8 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 `<a href="`{=html}<https://jezeleii.shinyapps.io/GAShiny/>`">`{=html}
 
 \
-![](images/clipboard-455846201.png)
+
+![](images/clipboard-455846201.png){fig-align="right" width="90%"}
 
 </a>
 :::
@@ -196,7 +197,7 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::: {style="width: 100%"}
 `<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex08/hands-on_ex08`">`{=html}
 
-![](images/clipboard-4162075504.png)
+![](images/clipboard-4162075504.png){fig-align="right" width="90%"}
 
 </a>
 :::
@@ -214,8 +215,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 </div>
 
 ::: {style="width: 100%"}
-`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex10/hands-on_ex10"`>`{=html}\
-[![](images/clipboard-935518991.png)](https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex10/hands-on_ex10)
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex10/hands-on_ex10`">`{=html}
+
+![](images/clipboard-935518991.png){fig-align="right" width="90%"}
 
 </a>
 :::
@@ -228,13 +230,14 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 
 <h3>Hands-On \n Exercise 11</h3>
 
-<p>Geographically Weighted Regression</p>
+<p>Building Block 11: Geographically Weighted Regression</p>
 
 </div>
 
 ::: {style="width: 100%"}
-`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex11/hands-on_ex11"`>`{=html}\
-[![](images/clipboard-1216507776.png)](https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex11/hands-on_ex11)
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex11/hands-on_ex11`">`{=html}
+
+![](images/clipboard-1216507776.png){fig-align="right" width="90%"}
 
 </a>
 :::
@@ -247,14 +250,14 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 
 <h3>Hands-On \n Exercise 13</h3>
 
-<p>Geographically Weighted Predictive Modelling</p>
+<p>Building Block 13: Geographically Weighted Predictive Modelling</p>
 
 </div>
 
 ::: {style="width: 100%"}
-`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex13/hands-on_ex13"`>`{=html}\
-\
-[![](images/clipboard-96070837.png)](https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex13/hands-on_ex13)
+`<a href="`{=html}https://is415-ga-jezelei.netlify.app/hands-on_exercise/hands-on_ex13/hands-on_ex13`">`{=html}
+
+![](images/clipboard-1454758397.png){fig-align="right" width="90%"}
 
 </a>
 :::
