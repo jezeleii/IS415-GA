@@ -1336,7 +1336,7 @@ L_SNG.csr <- envelope(armed_clash_sng_ppp, Lest, nsim = 30, rank = 1, glocal=TRU
 plot(L_SNG.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
 
-![](images/lsngcsr.png) \# 10. Spatio-Temporal Point Pattern Analysis
+![](/Users/jezelei/jezeleii/IS415-GA/Take-Home_Exercise/TakeHomeEx01/images/lsngcsr.png)
 
 ```{r}
 healthcare_sng <- st_intersection(poi_sf,sagaing)
