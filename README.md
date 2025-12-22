@@ -1,3 +1,5 @@
+Geospatial Portfolio: https://is415-ga-jezelei.netlify.app/
+
 # Geospatial Analysis of Armed Conflict in Myanmar (Take Home Exercise 1)
 
 This project provides a detailed geospatial analysis of armed conflict events in Myanmar, focusing on the period from January 2021 to June 2024. The analysis explores the spatial and spatio-temporal patterns of these conflicts to identify hotspots and understand their distribution over time.
