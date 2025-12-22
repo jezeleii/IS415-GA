@@ -173,7 +173,7 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 </div>
 
 ::: {style="width: 100%"}
-`<a href="`{=html}<https://jezeleii.shinyapps.io/GAShiny/>`">`{=html}
+<a href="https://jezeleii.shinyapps.io/GAShiny/">
 
 ![](images/clipboard-455846201.png){fig-align="right" width="90%"}
 
