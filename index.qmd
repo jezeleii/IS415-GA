@@ -175,11 +175,11 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::: {style="width: 100%"}
 <a href="https://jezeleii.shinyapps.io/GAShiny/">
 
-![](images/clipboard-455846201.png){fig-align="right" width="90%"}
+![](images/Hands-on_Ex07_Header.png){fig-align="right" width="90%"}
 
 </a>
 :::
-:::::
+::::: 
 
 <hr/>
 
