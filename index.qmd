@@ -30,7 +30,7 @@ JEZELEI MANANGAN
 
 </h1>
 
-<p>Penultimate Year, BSc Information Systems SMU</p>
+<p>BSc Information Systems SMU</p>
 
 <p style="max-width: 600px; font-size:11px">
 
@@ -46,9 +46,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 01</h3>
+<h3>Geospatial Data Science with R</h3>
 
-<p>Building Block 1: Geospatial Data Science with R</p>
+<p>Hands-On Exercise 01</p>
 
 </div>
 
@@ -66,9 +66,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 02</h3>
+<h3>Thematic Mapping &amp; GeoVisualization with R</h3>
 
-<p>Building Block 2: Thematic Mapping & GeoVisualization with R</p>
+<p>Hands-On Exercise 02</p>
 
 </div>
 
@@ -86,9 +86,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 03</h3>
+<h3>Spatial Point Pattern Analysis</h3>
 
-<p>Building Block 3: Spatial Point Pattern Analysis</p>
+<p>Hands-On Exercise 03</p>
 
 </div>
 
@@ -106,9 +106,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 04</h3>
+<h3>Spatial-Temporal Point Pattern Analysis</h3>
 
-<p>Building Block 4: Spatial-Temporal Point Pattern Analysis</p>
+<p>Hands-On Exercise 04</p>
 
 </div>
 
@@ -126,9 +126,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 05</h3>
+<h3>Spatial Weights and Applications</h3>
 
-<p>Building Block 5: Spatial Weights and Applications</p>
+<p>Hands-On Exercise 05</p>
 
 </div>
 
@@ -146,9 +146,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 06</h3>
+<h3>Global &amp; Local Measures of Spatial Autocorrelation</h3>
 
-<p>Building Block 6: Global & Local Measures of Spatial Autocorrelation</p>
+<p>Hands-On Exercise 06</p>
 
 </div>
 
@@ -166,9 +166,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 07</h3>
+<h3>Shiny App</h3>
 
-<p>Building Block 7: Shiny App</p>
+<p>Hands-On Exercise 07</p>
 
 </div>
 
@@ -186,9 +186,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 08</h3>
+<h3>Geographical Segmentation with Spatially Constrained Clustering Techniques</h3>
 
-<p>Building Block 8: Geographical Segmentation with Spatially Constrained Clustering Techniques</p>
+<p>Hands-On Exercise 08</p>
 
 </div>
 
@@ -206,9 +206,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 10</h3>
+<h3>Regression Modelling of Geographically Referenced Data</h3>
 
-<p>Building Block 10: Regression Modelling of Geographically Referenced Data</p>
+<p>Hands-On Exercise 10</p>
 
 </div>
 
@@ -226,9 +226,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 11</h3>
+<h3>Geographically Weighted Regression</h3>
 
-<p>Building Block 11: Geographically Weighted Regression</p>
+<p>Hands-On Exercise 11</p>
 
 </div>
 
@@ -246,9 +246,9 @@ Explore my work and see how I turn complex datasets into actionable insights. Wh
 ::::: {style="display:flex; align-items:center;"}
 <div>
 
-<h3>Hands-On \n Exercise 13</h3>
+<h3>Geographically Weighted Predictive Modelling</h3>
 
-<p>Building Block 13: Geographically Weighted Predictive Modelling</p>
+<p>Hands-On Exercise 13</p>
 
 </div>
 

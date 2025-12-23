@@ -54,13 +54,13 @@ website:
           - text: "In-class Exercise 12"
             href: "In-Class_Exercise/InClassEx12/InClassEx12.html"
             
-      - text: "Take-home Exercise"
+      - text: "Case Studies"
         menu: 
-          - text: "Take-home Exercise 1"
+          - text: "Case Study 1"
             href: "Take-Home_Exercise/TakeHomeEx01/TakeHomeEx01.html"
-          - text: "Take-home Exercise 2"
+          - text: "Case Study 2"
             href: "Take-Home_Exercise/TakeHomeEx02/TakeHomeEx02.html"
-          - text: "Take-home Exercise 3"
+          - text: "Case Study 3"
             href: "Take-Home_Exercise/TakeHomeEx03/TakeHomeEx03.html"
         
     right: 
